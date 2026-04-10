@@ -375,6 +375,54 @@
     background: #fff;
   }
 
+  .interaction-hint {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 251, 245, 0.92);
+    border: 1px solid rgba(53, 39, 25, 0.10);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.01em;
+    box-shadow: 0 10px 24px rgba(41, 31, 20, 0.10);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+    animation: hintFloat 1.8s ease-in-out infinite;
+  }
+
+  .interaction-hint.hidden {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .hint-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(197, 78, 47, 0.35);
+    animation: hintPulse 1.8s ease-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes hintPulse {
+    0% { box-shadow: 0 0 0 0 rgba(197, 78, 47, 0.35); }
+    70% { box-shadow: 0 0 0 12px rgba(197, 78, 47, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(197, 78, 47, 0); }
+  }
+
+  @keyframes hintFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
   @media (max-width: 1100px) {
     body {
       grid-template-columns: 1fr;
@@ -460,6 +508,10 @@
       </div>
       <div class="stage">
         <div class="stage-viewport" id="stageViewport">
+          <div class="interaction-hint" id="interactionHint">
+            <span class="hint-dot"></span>
+            <span>Click inside the slide to reveal animations</span>
+          </div>
           <div class="frame-shell" id="frameShell">
             <iframe id="viewerFrame" title="Portfolio page"></iframe>
           </div>
@@ -629,6 +681,7 @@
   const viewerFrame = document.getElementById("viewerFrame");
   const frameShell = document.getElementById("frameShell");
   const stageViewport = document.getElementById("stageViewport");
+  const interactionHint = document.getElementById("interactionHint");
   const openBtn = document.getElementById("openBtn");
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
@@ -748,15 +801,39 @@
     renderCurrent();
   }
 
+  function hideHint() {
+    interactionHint.classList.add("hidden");
+  }
+
+  function bindFrameInteractions() {
+    try {
+      const frameDoc = viewerFrame.contentDocument || viewerFrame.contentWindow?.document;
+      if (!frameDoc) return;
+
+      frameDoc.addEventListener("click", hideHint, { once: true });
+      frameDoc.addEventListener("keydown", hideHint, { once: true });
+    } catch (error) {
+      // Ignore frame binding issues and keep the hint visible as a fallback.
+    }
+  }
+
   prevBtn.addEventListener("click", () => goTo(currentIndex() - 1));
   nextBtn.addEventListener("click", () => goTo(currentIndex() + 1));
   firstBtn.addEventListener("click", () => goTo(0));
   lastBtn.addEventListener("click", () => goTo(state.filteredPages.length - 1));
 
   window.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") goTo(currentIndex() - 1);
-    if (event.key === "ArrowRight") goTo(currentIndex() + 1);
+    if (event.key === "ArrowLeft") {
+      hideHint();
+      goTo(currentIndex() - 1);
+    }
+    if (event.key === "ArrowRight") {
+      hideHint();
+      goTo(currentIndex() + 1);
+    }
   });
+
+  viewerFrame.addEventListener("load", bindFrameInteractions);
 
   window.addEventListener("resize", resizeStage);
   new ResizeObserver(resizeStage).observe(stageViewport);
