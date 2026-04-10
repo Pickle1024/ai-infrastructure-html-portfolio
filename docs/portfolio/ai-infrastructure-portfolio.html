@@ -375,6 +375,74 @@
     background: #fff;
   }
 
+  .start-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(250, 246, 239, 0.56), rgba(250, 246, 239, 0.22));
+    backdrop-filter: blur(4px);
+    opacity: 1;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+
+  .start-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .start-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 30px;
+    border-radius: 26px;
+    background: rgba(255, 252, 246, 0.95);
+    border: 1px solid rgba(53, 39, 25, 0.10);
+    box-shadow: 0 24px 44px rgba(52, 37, 22, 0.14);
+    text-align: center;
+    animation: startFloat 2s ease-in-out infinite;
+  }
+
+  .start-kicker {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .start-title {
+    font-size: 34px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  .start-subtitle {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 380px;
+  }
+
+  .start-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(197, 78, 47, 0.10);
+    color: var(--accent-dark);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
   .interaction-hint {
     position: absolute;
     right: 18px;
@@ -421,6 +489,11 @@
   @keyframes hintFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-2px); }
+  }
+
+  @keyframes startFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
   }
 
   @media (max-width: 1100px) {
@@ -508,6 +581,17 @@
       </div>
       <div class="stage">
         <div class="stage-viewport" id="stageViewport">
+          <div class="start-overlay" id="startOverlay">
+            <div class="start-card">
+              <div class="start-kicker">Interactive Portfolio</div>
+              <div class="start-title">Click to Start</div>
+              <div class="start-subtitle">Most slides are interactive. Click inside the slide to reveal staged animations, then use Previous or Next to continue.</div>
+              <div class="start-pill">
+                <span class="hint-dot"></span>
+                <span>Begin with the first slide</span>
+              </div>
+            </div>
+          </div>
           <div class="interaction-hint" id="interactionHint">
             <span class="hint-dot"></span>
             <span>Click inside the slide to reveal animations</span>
@@ -681,6 +765,7 @@
   const viewerFrame = document.getElementById("viewerFrame");
   const frameShell = document.getElementById("frameShell");
   const stageViewport = document.getElementById("stageViewport");
+  const startOverlay = document.getElementById("startOverlay");
   const interactionHint = document.getElementById("interactionHint");
   const openBtn = document.getElementById("openBtn");
   const prevBtn = document.getElementById("prevBtn");
@@ -791,6 +876,9 @@
     nextBtn.disabled = index === -1 || index >= state.filteredPages.length - 1;
     lastBtn.disabled = index === -1 || index >= state.filteredPages.length - 1;
 
+    startOverlay.classList.toggle("hidden", index !== 0);
+    interactionHint.classList.toggle("hidden", index === 0);
+
     renderPageList();
     resizeStage();
   }
@@ -805,12 +893,20 @@
     interactionHint.classList.add("hidden");
   }
 
+  function hideStartOverlay() {
+    startOverlay.classList.add("hidden");
+    interactionHint.classList.remove("hidden");
+  }
+
   function bindFrameInteractions() {
     try {
       const frameDoc = viewerFrame.contentDocument || viewerFrame.contentWindow?.document;
       if (!frameDoc) return;
 
-      frameDoc.addEventListener("click", hideHint, { once: true });
+      frameDoc.addEventListener("click", () => {
+        hideStartOverlay();
+        hideHint();
+      }, { once: true });
       frameDoc.addEventListener("keydown", hideHint, { once: true });
     } catch (error) {
       // Ignore frame binding issues and keep the hint visible as a fallback.
@@ -824,14 +920,18 @@
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "ArrowLeft") {
+      hideStartOverlay();
       hideHint();
       goTo(currentIndex() - 1);
     }
     if (event.key === "ArrowRight") {
+      hideStartOverlay();
       hideHint();
       goTo(currentIndex() + 1);
     }
   });
+
+  startOverlay.addEventListener("click", hideStartOverlay);
 
   viewerFrame.addEventListener("load", bindFrameInteractions);
 
