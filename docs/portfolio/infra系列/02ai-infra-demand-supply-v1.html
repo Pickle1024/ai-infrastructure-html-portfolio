@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PickLens — AI Infra Demand vs Supply</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #FAFAFA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+:root {
+    --bg: #FAFAFA;
+    --dark: #0A0A0A;
+    --secondary: #555;
+    --muted: #999;
+    --accent: #E63322;
+    --border: #E0E0E0;
+    --green: #22C55E;
+    --amber: #F59E0B;
+    --blue: #3B82F6;
+    --purple: #8B5CF6;
+}
+
+.canvas {
+    width: 1920px;
+    height: 1080px;
+    background: var(--bg);
+    transform-origin: center center;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 88px 40px;
+}
+
+.topbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.brand { display: flex; align-items: baseline; }
+.at   { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: #888; }
+.pick { font-family: 'Archivo', sans-serif; font-size: 32px; font-weight: 900; color: var(--dark); letter-spacing: -0.03em; }
+.lens { font-family: 'Archivo', sans-serif; font-size: 32px; font-weight: 900; color: var(--accent); letter-spacing: -0.03em; }
+.pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #AAA;
+    background: #EBEBEB;
+    padding: 4px 14px;
+    border-radius: 4px;
+    margin-left: 16px;
+    letter-spacing: 0.08em;
+}
+
+.top-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    color: #9E9E9E;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.body-row {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 0.95fr 2px 1.18fr;
+    padding-top: 8px;
+}
+
+.col-l {
+    padding-right: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+.col-r {
+    padding-left: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+.divider-v {
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, #D8D8D8 15%, #D8D8D8 85%, transparent);
+    align-self: stretch;
+}
+
+.col-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #969696;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+
+.compare-wrap {
+    margin-top: 2px;
+}
+
+.section-head {
+    min-height: 112px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.compare-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    color: #8F8F8F;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+}
+
+.compare-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 26px 22px;
+}
+
+.compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.compare-block {
+    background: #FCFCFC;
+    border: 1px solid #EFEFEF;
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+}
+
+.compare-block.accent {
+    background: #FEF7F6;
+    border-color: #F7C5BF;
+}
+
+.compare-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7D7D7D;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.compare-num {
+    font-family: 'Archivo', sans-serif;
+    font-size: 68px;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    color: var(--dark);
+}
+
+.compare-block.accent .compare-num {
+    color: var(--accent);
+}
+
+.compare-desc {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.25;
+}
+
+.ratio-box {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-radius: 12px;
+    background: #F7F7F7;
+    padding: 15px 18px;
+}
+
+.ratio-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #767676;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ratio-value {
+    font-family: 'Archivo', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--dark);
+    letter-spacing: -0.03em;
+}
+
+.left-note {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    color: #5F5F5F;
+    margin-top: 14px;
+    line-height: 1.35;
+    max-width: 760px;
+}
+
+.stack-card {
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    background: #fff;
+    padding: 22px 24px 20px;
+}
+
+.stack-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    color: #6F6F6F;
+    margin-bottom: 22px;
+    line-height: 1.35;
+    max-width: 520px;
+}
+
+.stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.layer {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr) 182px;
+    gap: 18px;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.layer.shown {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.layer-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.layer-track {
+    width: 100%;
+    max-width: 320px;
+    height: 10px;
+    background: #F2F2F2;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    justify-self: stretch;
+}
+
+.layer-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.layer-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+.layer-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.layer-sub {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    color: #686868;
+}
+
+.timeline-card {
+    border-top: 1px solid #ECECEC;
+    padding-top: 22px;
+}
+
+.timeline-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    color: #8F8F8F;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+}
+
+.timeline {
+    position: relative;
+    padding-top: 10px;
+}
+
+.timeline-line {
+    position: absolute;
+    top: 26px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, #E5E5E5, #D5D5D5);
+}
+
+.timeline-points {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    position: relative;
+}
+
+.point {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.point.shown {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 1px #E0E0E0;
+    margin-bottom: 14px;
+}
+
+.year {
+    font-family: 'Archivo', sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--dark);
+    line-height: 1;
+}
+
+.event {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    color: #5F5F5F;
+    margin-top: 6px;
+    max-width: 220px;
+}
+
+.src-r {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #8C8C8C;
+    margin-top: 18px;
+}
+
+.callout {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #FEF7F6;
+    border: 2.5px solid var(--accent);
+    border-radius: 14px;
+    padding: 20px 28px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-bar {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #E8E8E8;
+}
+
+.step-ctr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #9D9D9D;
+}
+
+.step-ctr .cur {
+    color: var(--dark);
+    font-weight: 700;
+}
+
+.hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #9D9D9D;
+    letter-spacing: 0.06em;
+}
+
+.r {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.r.shown {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+    <div class="topbar">
+        <div style="display:flex;align-items:baseline;">
+            <div class="brand"><span class="at">@</span><span class="pick">Pick</span><span class="lens">Lens</span></div>
+            <span class="pill">AI INFRA · 02</span>
+        </div>
+        <div class="top-right">Understanding AI Infrastructure</div>
+    </div>
+
+    <div class="body-row">
+        <div class="col-l">
+            <div class="section-head">
+                <div class="col-label r" data-step="1">DEMAND</div>
+                <div class="compare-title r" data-step="1">Scale comparison</div>
+            </div>
+            <div class="compare-wrap r" data-step="2">
+                <div class="compare-card">
+                    <div class="compare-row">
+                        <div class="compare-block accent">
+                            <div class="compare-kicker">Demand-side vision</div>
+                            <div class="compare-num">$1T</div>
+                            <div class="compare-desc">Blackwell + Vera Rubin<br>by 2027</div>
+                        </div>
+                        <div class="compare-block">
+                            <div class="compare-kicker">Current industry base</div>
+                            <div class="compare-num">$630.5B</div>
+                            <div class="compare-desc">entire 2024 global<br>semiconductor market</div>
+                        </div>
+                    </div>
+                    <div class="ratio-box">
+                        <div class="ratio-label">Implied scale</div>
+                        <div class="ratio-value">~1.6× 2024 semi market</div>
+                    </div>
+                </div>
+                <div class="left-note">Jensen's demand-side vision for just Blackwell and Vera Rubin approaches the scale of the entire global semiconductor market in 2024.</div>
+            </div>
+        </div>
+
+        <div class="divider-v"></div>
+
+        <div class="col-r">
+            <div class="section-head">
+                <div class="col-label r" data-step="1" style="margin-bottom:14px;">SUPPLY</div>
+                <div class="stack-title r" data-step="1">Physical bottlenecks beneath the demand story</div>
+            </div>
+            <div class="stack-card">
+                <div class="stack-list">
+                    <div class="layer" id="l0">
+                        <div class="layer-name">3nm</div>
+                        <div class="layer-track"><div class="layer-fill" id="f0" style="background:var(--blue)"></div></div>
+                        <div class="layer-meta">
+                            <div class="layer-tag" style="background:#DBEAFE;color:#1D4ED8;">concentrated</div>
+                            <div class="layer-sub">leading-edge wafers</div>
+                        </div>
+                    </div>
+
+                    <div class="layer" id="l1">
+                        <div class="layer-name">HBM</div>
+                        <div class="layer-track"><div class="layer-fill" id="f1" style="background:var(--purple)"></div></div>
+                        <div class="layer-meta">
+                            <div class="layer-tag" style="background:#F3E8FF;color:#7E22CE;">tight</div>
+                            <div class="layer-sub">memory bottleneck</div>
+                        </div>
+                    </div>
+
+                    <div class="layer" id="l2">
+                        <div class="layer-name">CoWoS</div>
+                        <div class="layer-track"><div class="layer-fill" id="f2" style="background:var(--green)"></div></div>
+                        <div class="layer-meta">
+                            <div class="layer-tag" style="background:#DCFCE7;color:#15803D;">expanding</div>
+                            <div class="layer-sub">advanced packaging</div>
+                        </div>
+                    </div>
+
+                    <div class="layer" id="l3">
+                        <div class="layer-name">System</div>
+                        <div class="layer-track"><div class="layer-fill" id="f3" style="background:#A3A3A3"></div></div>
+                        <div class="layer-meta">
+                            <div class="layer-tag" style="background:#F3F4F6;color:#6B7280;">slow</div>
+                            <div class="layer-sub">integration + yield</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="src-r r" data-step="5">TSMC 1Q25 · Micron FY25 Q2 · SIA/WSTS</div>
+            </div>
+
+            <div class="timeline-card r" data-step="5">
+                <div class="timeline-title">Ramp timeline</div>
+                <div class="timeline">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-points">
+                        <div class="point" id="p0">
+                            <div class="dot"></div>
+                            <div class="year">2025</div>
+                            <div class="event">capacity expansion</div>
+                        </div>
+                        <div class="point" id="p1">
+                            <div class="dot"></div>
+                            <div class="year">2026</div>
+                            <div class="event">production start</div>
+                        </div>
+                        <div class="point" id="p2">
+                            <div class="dot"></div>
+                            <div class="year">2027</div>
+                            <div class="event">meaningful supply</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div class="step-ctr"><span class="cur" id="stepNum">0</span> / 5</div>
+        <div class="hint" id="hint">CLICK or → to advance</div>
+    </div>
+</div>
+
+<script>
+function scale() {
+    const c = document.getElementById('canvas');
+    const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    c.style.transform = `scale(${s})`;
+}
+
+scale();
+window.addEventListener('resize', scale);
+
+const layers = [
+    { step: 3, row: 'l0', fill: 'f0', width: 76 },
+    { step: 3, row: 'l1', fill: 'f1', width: 62 },
+    { step: 4, row: 'l2', fill: 'f2', width: 68 },
+    { step: 5, row: 'l3', fill: 'f3', width: 54 },
+];
+
+const points = ['p0', 'p1', 'p2'];
+
+let step = 0;
+const MAX = 5;
+
+function advance() {
+    if (step >= MAX) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+    });
+
+    layers.forEach(layer => {
+        if (layer.step === step) {
+            document.getElementById(layer.row).classList.add('shown');
+            setTimeout(() => {
+                document.getElementById(layer.fill).style.width = layer.width + '%';
+            }, 90);
+        }
+    });
+
+    if (step === 5) {
+        points.forEach((id, idx) => {
+            setTimeout(() => {
+                document.getElementById(id).classList.add('shown');
+            }, idx * 120);
+        });
+    }
+
+    if (step >= MAX) {
+        document.getElementById('hint').textContent = 'Complete';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowDown', ' ', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        advance();
+    }
+});
+</script>
+</body>
+</html>

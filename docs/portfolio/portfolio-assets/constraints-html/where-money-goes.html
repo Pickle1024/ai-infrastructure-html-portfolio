@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where The Money Goes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --secondary: #555;
+            --muted: #999;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --green: #22C55E;
+            --blue: #3B82F6;
+            --purple: #8B5CF6;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+            gap: clamp(1.2rem, 3vh, 2rem);
+        }
+
+        /* HEADER */
+        .header { text-align: center; }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.65rem, 1vw, 0.8rem);
+            color: var(--accent); text-transform: uppercase;
+            letter-spacing: 0.15em; margin-bottom: 0.3em;
+            display: flex; align-items: center; justify-content: center; gap: 0.6em;
+        }
+        .section-label::before {
+            content: ''; width: clamp(1.5rem, 2.5vw, 2rem); height: 2px; background: var(--accent);
+        }
+        h1 {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.6rem, 4vw, 2.6rem); letter-spacing: -0.02em;
+        }
+
+        /* ============================================
+           TOP: $700B source block
+           ============================================ */
+        .source-block {
+            text-align: center;
+        }
+        .source-amount {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            line-height: 1;
+        }
+        .source-amount .dollar { color: var(--dark); }
+        .source-amount .num { color: var(--accent); }
+        .source-amount .unit { color: var(--dark); font-size: 0.65em; }
+        .source-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.75rem, 1.3vw, 1rem);
+            color: var(--muted); margin-top: 0.2em;
+        }
+
+        /* ============================================
+           FLOW ARROW
+           ============================================ */
+        .flow-arrow {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0;
+        }
+        .flow-line {
+            width: 2px; height: clamp(1rem, 2.5vh, 1.8rem);
+            background: var(--border);
+        }
+        .flow-split {
+            width: clamp(16rem, 50vw, 38rem);
+            height: 2px;
+            background: var(--border);
+            position: relative;
+        }
+        .flow-split::before,
+        .flow-split::after,
+        .flow-split .mid-drop {
+            content: '';
+            position: absolute; top: 0;
+            width: 2px; height: clamp(0.6rem, 1.5vh, 1rem);
+            background: var(--border);
+        }
+        .flow-split::before { left: 0; }
+        .flow-split::after { right: 0; }
+        .flow-split .mid-drop {
+            left: 50%; transform: translateX(-50%);
+        }
+
+        /* ============================================
+           THREE CARDS
+           ============================================ */
+        .cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: clamp(0.8rem, 2vw, 1.5rem);
+            max-width: 1000px;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .card {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: clamp(0.8rem, 1.8vw, 1.2rem);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: clamp(0.3rem, 0.8vh, 0.5rem);
+        }
+
+        /* Card icon area */
+        .card-icon {
+            width: clamp(3rem, 7vw, 4.5rem);
+            height: clamp(3rem, 7vw, 4.5rem);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+
+        /* ---- Chip icon (CSS) ---- */
+        .icon-chip {
+            background: var(--dark);
+        }
+        .icon-chip .chip-inner {
+            width: 50%; height: 50%;
+            background: var(--green);
+            border-radius: 3px;
+            position: relative;
+        }
+        .icon-chip .chip-inner::after {
+            content: '';
+            position: absolute; inset: 20%;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            border-radius: 2px;
+        }
+        /* Pins */
+        .icon-chip .pins {
+            position: absolute;
+            display: flex; gap: 3px; justify-content: center;
+        }
+        .icon-chip .pins.top { top: 3px; left: 25%; right: 25%; }
+        .icon-chip .pins.bottom { bottom: 3px; left: 25%; right: 25%; }
+        .icon-chip .pins.left { left: 3px; top: 25%; bottom: 25%; flex-direction: column; }
+        .icon-chip .pins.right { right: 3px; top: 25%; bottom: 25%; flex-direction: column; }
+        .icon-chip .pin {
+            width: 3px; height: 4px; background: #666; border-radius: 1px;
+        }
+        .icon-chip .pins.left .pin,
+        .icon-chip .pins.right .pin {
+            width: 4px; height: 3px;
+        }
+
+        /* ---- Server icon (CSS) ---- */
+        .icon-server {
+            background: linear-gradient(180deg, #222 0%, #1a1a1a 100%);
+            flex-direction: column;
+            gap: 3px;
+            padding: 12%;
+        }
+        .server-unit {
+            flex: 1; width: 100%;
+            background: #333; border-radius: 2px;
+            display: flex; align-items: center;
+            padding: 0 10%; gap: 4px;
+        }
+        .server-dot {
+            width: 4px; height: 4px; border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 3px var(--green);
+        }
+        .server-line {
+            flex: 1; height: 2px;
+            background: #555; border-radius: 1px;
+        }
+
+        /* ---- Datacenter icon (CSS) ---- */
+        .icon-dc {
+            background: linear-gradient(180deg, #e0e0e0 0%, #ccc 100%);
+            border-radius: 10px 10px 4px 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .icon-dc .dc-windows {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            width: 60%; position: absolute;
+            top: 20%;
+        }
+        .icon-dc .dc-win {
+            aspect-ratio: 1;
+            background: var(--green);
+            border-radius: 1px;
+            opacity: 0.5;
+        }
+        .icon-dc .dc-base {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 28%;
+            background: #bbb;
+            border-top: 1.5px solid #aaa;
+        }
+        .icon-dc .dc-door {
+            position: absolute; bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 16%; height: 22%;
+            background: #999; border-radius: 2px 2px 0 0;
+        }
+
+        /* Card text */
+        .card-title {
+            font-family: var(--font-display); font-weight: 800;
+            font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+        }
+        .card-subtitle {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1.1vw, 0.82rem);
+            color: var(--accent); font-weight: 600;
+            font-style: italic;
+        }
+        .card-details {
+            display: flex; flex-direction: column;
+            gap: clamp(0.15rem, 0.3vh, 0.2rem);
+            width: 100%;
+        }
+        .detail-item {
+            font-family: var(--font-body);
+            font-size: clamp(0.6rem, 1vw, 0.78rem);
+            color: var(--secondary);
+            display: flex; align-items: center;
+            gap: 0.4em;
+        }
+        .detail-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .detail-dot.green { background: var(--green); }
+        .detail-dot.blue { background: var(--blue); }
+        .detail-dot.purple { background: var(--purple); }
+
+        /* ============================================
+           REVEAL SYSTEM
+           ============================================ */
+        .r {
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 0.45s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        .r.shown { opacity: 1; transform: translateY(0); }
+
+        /* Card border highlight on reveal */
+        .card.highlight-green { border-color: var(--green); }
+        .card.highlight-blue { border-color: var(--blue); }
+        .card.highlight-purple { border-color: var(--purple); }
+        .card { transition: border-color 0.4s ease; }
+
+        /* ============================================
+           HINT
+           ============================================ */
+        .click-hint {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.85vw, 0.65rem); color: var(--muted);
+        }
+        .step-counter .cur { color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="section-label"><span>2026 AI Infrastructure Investment</span></div>
+        <h1>Where Does The Money Go?</h1>
+    </div>
+
+    <!-- $700B SOURCE -->
+    <div class="source-block r" data-step="1">
+        <div class="source-amount">
+            <span class="dollar">$</span><span class="num">700</span><span class="unit">B</span>
+        </div>
+        <div class="source-desc">invested by tech giants in 2026</div>
+    </div>
+
+    <!-- FLOW ARROW -->
+    <div class="flow-arrow r" data-step="2">
+        <div class="flow-line"></div>
+        <div class="flow-split"><div class="mid-drop"></div></div>
+    </div>
+
+    <!-- THREE CARDS -->
+    <div class="cards-row">
+
+        <!-- ======= CHIPS ======= -->
+        <div class="card" id="card1">
+            <!-- Icon -->
+            <div class="r" data-step="3">
+                <div class="card-icon icon-chip">
+                    <div class="pins top"><div class="pin"></div><div class="pin"></div><div class="pin"></div></div>
+                    <div class="pins bottom"><div class="pin"></div><div class="pin"></div><div class="pin"></div></div>
+                    <div class="pins left"><div class="pin"></div><div class="pin"></div><div class="pin"></div></div>
+                    <div class="pins right"><div class="pin"></div><div class="pin"></div><div class="pin"></div></div>
+                    <div class="chip-inner"></div>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="r" data-step="3">
+                <div class="card-title">Chips</div>
+                <div class="card-subtitle">"The brain cells of AI"</div>
+            </div>
+            <!-- Details one by one -->
+            <div class="card-details">
+                <div class="detail-item r" data-step="4">
+                    <div class="detail-dot green"></div>GPUs — compute engine
+                </div>
+                <div class="detail-item r" data-step="5">
+                    <div class="detail-dot green"></div>HBM — high bandwidth memory
+                </div>
+                <div class="detail-item r" data-step="6">
+                    <div class="detail-dot green"></div>Advanced packaging — binds them together
+                </div>
+            </div>
+        </div>
+
+        <!-- ======= SERVERS ======= -->
+        <div class="card" id="card2">
+            <!-- Icon -->
+            <div class="r" data-step="7">
+                <div class="card-icon icon-server">
+                    <div class="server-unit"><div class="server-dot"></div><div class="server-line"></div></div>
+                    <div class="server-unit"><div class="server-dot"></div><div class="server-line"></div></div>
+                    <div class="server-unit"><div class="server-dot"></div><div class="server-line"></div></div>
+                    <div class="server-unit"><div class="server-dot"></div><div class="server-line"></div></div>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="r" data-step="7">
+                <div class="card-title">Servers & Networking</div>
+                <div class="card-subtitle">"Super powerful computers"</div>
+            </div>
+            <!-- Details -->
+            <div class="card-details">
+                <div class="detail-item r" data-step="8">
+                    <div class="detail-dot blue"></div>Servers hold dozens of chips
+                </div>
+                <div class="detail-item r" data-step="9">
+                    <div class="detail-dot blue"></div>Networking connects thousands of servers
+                </div>
+            </div>
+        </div>
+
+        <!-- ======= DATACENTERS ======= -->
+        <div class="card" id="card3">
+            <!-- Icon -->
+            <div class="r" data-step="10">
+                <div class="card-icon icon-dc">
+                    <div class="dc-windows">
+                        <div class="dc-win"></div><div class="dc-win"></div><div class="dc-win"></div>
+                        <div class="dc-win"></div><div class="dc-win"></div><div class="dc-win"></div>
+                    </div>
+                    <div class="dc-base"></div>
+                    <div class="dc-door"></div>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="r" data-step="10">
+                <div class="card-title">Datacenter Construction</div>
+                <div class="card-subtitle">"The physical infrastructure"</div>
+            </div>
+            <!-- Details -->
+            <div class="card-details">
+                <div class="detail-item r" data-step="11">
+                    <div class="detail-dot purple"></div>Buildings
+                </div>
+                <div class="detail-item r" data-step="12">
+                    <div class="detail-dot purple"></div>Power systems
+                </div>
+                <div class="detail-item r" data-step="13">
+                    <div class="detail-dot purple"></div>Cooling systems
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="cur" id="stepNum">0</span> / 13</div>
+
+<script>
+let step = 0;
+const maxStep = 13;
+
+const cardHighlights = {
+    3: ['card1', 'highlight-green'],
+    7: ['card2', 'highlight-blue'],
+    10: ['card3', 'highlight-purple'],
+};
+
+function advance() {
+    if (step >= maxStep) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    // Reveal elements
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+    });
+
+    // Highlight card border
+    if (cardHighlights[step]) {
+        const [cardId, cls] = cardHighlights[step];
+        document.getElementById(cardId).classList.add(cls);
+    }
+
+    if (step >= maxStep) {
+        document.getElementById('hint').textContent = 'Complete';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Bottleneck</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --secondary: #555;
+            --muted: #999;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --green: #22C55E;
+            --amber: #F59E0B;
+            --red: #EF4444;
+            --purple: #8B5CF6;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: clamp(0.8rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+            gap: clamp(0.6rem, 1.5vh, 1rem);
+        }
+
+        /* HEADER */
+        .header {
+            margin-bottom: clamp(0.3rem, 0.8vh, 0.5rem);
+            text-align: center;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.6rem, 1vw, 0.8rem);
+            color: var(--accent); text-transform: uppercase;
+            letter-spacing: 0.15em; margin-bottom: 0.3em;
+            display: flex; align-items: center; gap: 0.6em;
+        }
+        .section-label::before {
+            content: ''; width: clamp(1.5rem, 2.5vw, 2rem); height: 2px; background: var(--accent);
+        }
+        h1 {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.5rem, 3.5vw, 2.4rem); letter-spacing: -0.02em;
+        }
+
+        /* THREE COLUMNS */
+        .columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: clamp(0.6rem, 1.5vw, 1.2rem);
+            align-items: stretch;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        /* COLUMN CARD */
+        .col-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: clamp(0.6rem, 1.5vw, 1rem);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.25rem, 0.6vh, 0.4rem);
+            overflow: hidden;
+        }
+
+        /* Column header */
+        .col-header {
+            display: flex; align-items: center; gap: 0.4em;
+            padding-bottom: clamp(0.25rem, 0.5vh, 0.4rem);
+            border-bottom: 1px solid var(--border);
+        }
+        .col-icon {
+            width: clamp(1.6rem, 3vw, 2.2rem);
+            height: clamp(1.6rem, 3vw, 2.2rem);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+        }
+        .col-icon.gpu { background: #1a1a1a; color: var(--green); }
+        .col-icon.hbm { background: var(--accent); color: #fff; }
+        .col-icon.pkg { background: var(--purple); color: #fff; }
+        .col-title {
+            font-family: var(--font-display); font-weight: 800;
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+        }
+
+        /* REVEAL ITEMS — each is one click */
+        .r {
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.4s cubic-bezier(0.16,1,0.3,1);
+        }
+        .r.shown {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Data row */
+        .data-row {
+            display: flex;
+            align-items: baseline;
+            gap: clamp(0.3rem, 0.7vw, 0.5rem);
+        }
+        .data-number {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+            line-height: 1.1;
+        }
+        .data-number.red { color: var(--accent); }
+        .data-number.amber { color: var(--amber); }
+        .data-unit {
+            font-family: var(--font-mono);
+            font-size: clamp(0.6rem, 1vw, 0.75rem);
+            color: var(--muted);
+        }
+        .data-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1.1vw, 0.82rem);
+            color: var(--secondary);
+            line-height: 1.4;
+        }
+
+        /* Status badge */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+            font-weight: 700;
+            padding: 0.2em 0.6em;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+            width: fit-content;
+        }
+        .status.sold-out {
+            background: #FEE2E2; color: var(--red);
+        }
+        .status.warning {
+            background: #FEF3C7; color: #92400E;
+        }
+        .status-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .status.sold-out .status-dot { background: var(--red); }
+        .status.warning .status-dot { background: var(--amber); }
+
+        /* Divider line */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: clamp(0.05rem, 0.2vh, 0.1rem) 0;
+        }
+
+        /* Mini bar chart for market share */
+        .share-row {
+            display: flex; align-items: center;
+            gap: clamp(0.3rem, 0.6vw, 0.4rem);
+        }
+        .share-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.5rem, 0.85vw, 0.65rem);
+            color: var(--secondary);
+            min-width: clamp(3.5rem, 6vw, 5rem);
+            text-align: right;
+            white-space: nowrap;
+        }
+        .share-track {
+            flex: 1; height: clamp(0.6rem, 1.2vh, 0.9rem);
+            background: #f0f0f0; border-radius: 3px;
+            overflow: hidden;
+        }
+        .share-fill {
+            height: 100%; border-radius: 3px;
+            width: 0;
+            transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+        }
+        .share-fill.fill-accent { background: var(--accent); }
+        .share-fill.fill-dark { background: #444; }
+        .share-fill.fill-muted { background: #bbb; }
+        .share-pct {
+            font-family: var(--font-mono);
+            font-size: clamp(0.5rem, 0.85vw, 0.65rem);
+            font-weight: 700;
+            color: var(--dark);
+            min-width: clamp(2rem, 3.5vw, 2.8rem);
+        }
+
+        /* Highlight callout */
+        .callout {
+            background: #FEF7F6;
+            border-left: 3px solid var(--accent);
+            padding: clamp(0.3rem, 0.7vw, 0.5rem) clamp(0.5rem, 1vw, 0.7rem);
+            border-radius: 0 6px 6px 0;
+        }
+        .callout .data-desc {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .callout .data-number {
+            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+        }
+
+        /* FOOTER */
+        .click-hint {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.85vw, 0.65rem); color: var(--muted);
+        }
+        .step-counter .cur { color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <div class="header">
+        <div class="section-label"><span>The Supply Problem</span></div>
+        <h1>All Three Are Bottlenecks</h1>
+    </div>
+
+    <div class="columns">
+
+        <!-- ==================== GPU COLUMN ==================== -->
+        <div class="col-card">
+            <div class="col-header">
+                <div class="col-icon gpu">⬡</div>
+                <div class="col-title">GPU Chips</div>
+            </div>
+
+            <!-- R1: H100/H200 lead time -->
+            <div class="r" data-step="1">
+                <div class="data-desc">H100 / H200 lead times</div>
+                <div class="data-row">
+                    <div class="data-number amber">6–12</div>
+                    <div class="data-unit">months</div>
+                </div>
+            </div>
+
+            <div class="divider r" data-step="2"></div>
+
+            <!-- R2: B200/GB200 sold out -->
+            <div class="r" data-step="2">
+                <div class="data-desc">B200 / GB200</div>
+                <div class="status sold-out"><div class="status-dot"></div>SOLD OUT through mid-2026</div>
+            </div>
+
+            <!-- R3: Backlog number -->
+            <div class="r" data-step="3">
+                <div class="data-row">
+                    <div class="data-number red">3.6M</div>
+                    <div class="data-unit">unit backlog</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== HBM COLUMN ==================== -->
+        <div class="col-card">
+            <div class="col-header">
+                <div class="col-icon hbm">▥</div>
+                <div class="col-title">HBM Memory</div>
+            </div>
+
+            <!-- R4: Demand growth -->
+            <div class="r" data-step="4">
+                <div class="data-desc">Demand growth (2025 YoY)</div>
+                <div class="data-row">
+                    <div class="data-number red">+150%</div>
+                </div>
+            </div>
+
+            <!-- R5: Sold out -->
+            <div class="r" data-step="5">
+                <div class="status sold-out"><div class="status-dot"></div>SOLD OUT through 2027</div>
+            </div>
+
+            <div class="divider r" data-step="6"></div>
+
+            <!-- R6: Only 3 makers -->
+            <div class="r" data-step="6">
+                <div class="data-desc" style="font-weight:600;color:var(--dark);">Only 3 companies can make it</div>
+            </div>
+
+            <!-- R7: SK Hynix bar -->
+            <div class="r share-row" data-step="7">
+                <div class="share-label">SK Hynix</div>
+                <div class="share-track"><div class="share-fill fill-accent" data-w="60%"></div></div>
+                <div class="share-pct">54–62%</div>
+            </div>
+
+            <!-- R8: Samsung bar -->
+            <div class="r share-row" data-step="8">
+                <div class="share-label">Samsung</div>
+                <div class="share-track"><div class="share-fill fill-dark" data-w="39%"></div></div>
+                <div class="share-pct">39%</div>
+            </div>
+
+            <!-- R9: Micron bar -->
+            <div class="r share-row" data-step="9">
+                <div class="share-label">Micron</div>
+                <div class="share-track"><div class="share-fill fill-muted" data-w="7%"></div></div>
+                <div class="share-pct">7%</div>
+            </div>
+        </div>
+
+        <!-- ==================== PACKAGING COLUMN ==================== -->
+        <div class="col-card">
+            <div class="col-header">
+                <div class="col-icon pkg">◫</div>
+                <div class="col-title">Advanced Packaging</div>
+            </div>
+
+            <!-- R10: TSMC CoWoS dominance -->
+            <div class="r" data-step="10">
+                <div class="data-desc">TSMC CoWoS market share</div>
+                <div class="data-row">
+                    <div class="data-number red">85%+</div>
+                </div>
+            </div>
+
+            <!-- R11: Sold out -->
+            <div class="r" data-step="11">
+                <div class="status sold-out"><div class="status-dot"></div>SOLD OUT through end of 2026</div>
+            </div>
+
+            <!-- R12: Possibly 2027 -->
+            <div class="r" data-step="12">
+                <div class="data-desc" style="color:var(--muted);font-style:italic;">Possibly extending into 2027</div>
+            </div>
+
+            <div class="divider r" data-step="13"></div>
+
+            <!-- R13: NVIDIA ordered 50% -->
+            <div class="r callout" data-step="13">
+                <div class="data-desc">NVIDIA alone ordered</div>
+                <div class="data-row">
+                    <div class="data-number red">&gt;50%</div>
+                    <div class="data-unit">of 2-year capacity</div>
+                </div>
+            </div>
+
+            <!-- R14: Limited space -->
+            <div class="r" data-step="14">
+                <div class="data-desc">Leaving very limited space for Google, AWS, Azure, and others</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="cur" id="stepNum">0</span> / 14</div>
+
+<script>
+let step = 0;
+const maxStep = 14;
+
+function advance() {
+    if (step >= maxStep) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    // Show all elements with data-step <= current step
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+
+        // Animate bar fills inside this element
+        const fill = el.querySelector('.share-fill');
+        if (fill) {
+            setTimeout(() => { fill.style.width = fill.dataset.w; }, 80);
+        }
+    });
+
+    if (step >= maxStep) {
+        document.getElementById('hint').textContent = 'All data revealed';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+
+</body>
+</html>

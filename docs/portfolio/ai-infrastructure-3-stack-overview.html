@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PickLens — AI Infrastructure Stack Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #FAFAFA;
+    --dark: #0A0A0A;
+    --secondary: #575757;
+    --muted: #7D7D7D;
+    --border: #E2E2E2;
+    --accent: #E63322;
+    --blue: #3B82F6;
+    --green: #22C55E;
+    --purple: #8B5CF6;
+    --amber: #F59E0B;
+    --gray: #6B7280;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.canvas {
+    width: 1920px;
+    height: 1080px;
+    background: var(--bg);
+    transform-origin: center center;
+    padding: 40px 64px 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.brand-wrap { display: flex; align-items: baseline; }
+.at { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: #888; }
+.pick, .lens {
+    font-family: 'Archivo', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+.pick { color: var(--dark); }
+.lens { color: var(--accent); }
+.pill {
+    margin-left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #9A9A9A;
+    background: #ECECEC;
+    border-radius: 4px;
+    padding: 4px 14px;
+    letter-spacing: 0.08em;
+}
+.top-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    color: #969696;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.header {
+    display: grid;
+    grid-template-columns: 1.12fr 0.88fr;
+    gap: 28px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #8F8F8F;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.headline {
+    font-family: 'Archivo', sans-serif;
+    font-size: 64px;
+    line-height: 0.94;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: var(--dark);
+    max-width: 760px;
+}
+
+.subline {
+    margin-top: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    line-height: 1.22;
+    color: var(--secondary);
+    max-width: 760px;
+}
+
+.summary {
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    background: #fff;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.summary-card {
+    border: 1px solid #EFEFEF;
+    border-radius: 14px;
+    background: #FCFCFC;
+    padding: 14px 14px 12px;
+}
+
+.summary-card.red {
+    background: #FEF7F6;
+    border-color: #F6C6C0;
+}
+
+.summary-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #7D7D7D;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-family: 'Archivo', sans-serif;
+    font-size: 58px;
+    line-height: 0.95;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: var(--dark);
+}
+
+.summary-card.red .summary-value { color: var(--accent); }
+
+.summary-desc {
+    margin-top: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    line-height: 1.24;
+    color: #585858;
+}
+
+.board {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+    padding: 16px 18px 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.board-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.board-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    color: #8F8F8F;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.board-sub {
+    font-family: 'Nunito', sans-serif;
+    font-size: 21px;
+    color: #666;
+}
+
+.board-sub strong {
+    font-family: 'Archivo', sans-serif;
+    font-size: 1.35em;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--dark);
+}
+
+.stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+}
+
+.group {
+    border: 1px solid #ECECEC;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #FFF 0%, #FCFCFC 100%);
+    padding: 12px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group.shown {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.group.software {
+    border-color: #F4C7C1;
+    background: linear-gradient(180deg, #FFF8F7 0%, #FFF 100%);
+}
+
+.group.system {
+    border-color: #CDE0FF;
+    background: linear-gradient(180deg, #F8FBFF 0%, #FFF 100%);
+}
+
+.group.physical {
+    border-color: #E8D7FF;
+    background: linear-gradient(180deg, #FBF8FF 0%, #FFF 100%);
+}
+
+.group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+}
+
+.group-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 32px;
+    line-height: 0.96;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--dark);
+}
+
+.group.software .group-title { color: #B91C1C; }
+.group.system .group-title { color: #1D4ED8; }
+.group.physical .group-title { color: #7E22CE; }
+
+.group-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 8px 14px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.group-copy {
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    line-height: 1.18;
+    color: #5E5E5E;
+}
+
+.children {
+    display: grid;
+    gap: 10px;
+}
+
+.children.two { grid-template-columns: 1fr 1fr; }
+.children.three { grid-template-columns: 1fr 1fr 1fr; }
+
+.child {
+    border: 1px solid #EEEEEE;
+    border-radius: 14px;
+    background: #FAFAFA;
+    padding: 10px 12px 9px;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.group.software .child {
+    background: #FFFDFC;
+    border-color: #F2E6E4;
+}
+
+.group.system .child {
+    background: #FBFDFF;
+    border-color: #E2ECFA;
+}
+
+.group.physical .child {
+    background: #FCFBFE;
+    border-color: #E9E1F6;
+}
+
+.child-name {
+    font-family: 'Archivo', sans-serif;
+    font-size: 21px;
+    line-height: 0.98;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--dark);
+}
+
+.child-copy {
+    margin-top: 6px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    line-height: 1.14;
+    color: #626262;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #EBEBEB;
+}
+
+.step-ctr, .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #9B9B9B;
+}
+
+.step-ctr .cur {
+    color: var(--dark);
+    font-weight: 700;
+}
+
+.r {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.r.shown {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+    <div class="topbar">
+        <div class="brand-wrap">
+            <div class="at">@</div><div class="pick">Pick</div><div class="lens">Lens</div>
+            <div class="pill">AI INFRA · 03</div>
+        </div>
+        <div class="top-right">Understanding AI Infrastructure</div>
+    </div>
+
+    <div class="header">
+        <div>
+            <div class="eyebrow r" data-step="1">Stack Overview</div>
+            <div class="headline r" data-step="2">AI infrastructure is a layered system.</div>
+            <div class="subline r" data-step="3">3 layers. 8 domains.</div>
+        </div>
+        <div class="summary r" data-step="4">
+            <div class="summary-card red">
+                <div class="summary-label">What most people see</div>
+                <div class="summary-value">GPU</div>
+                <div class="summary-desc">chip story</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">What the stack really is</div>
+                <div class="summary-value">3</div>
+                <div class="summary-desc">layers / 8 domains</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="board">
+        <div class="board-head">
+            <div class="board-title r" data-step="1">AI infrastructure stack</div>
+            <div class="board-sub r" data-step="1"><strong>3</strong> layers / <strong>8</strong> domains</div>
+        </div>
+
+        <div class="stack">
+            <div class="group software" id="g0">
+                <div class="group-head">
+                    <div class="group-title">Software / Service</div>
+                    <div class="group-tag" style="background:#FEE2E2;color:#B91C1C;">margin + workflow</div>
+                </div>
+                <div class="group-copy">Usage, orchestration, monetization</div>
+                <div class="children two">
+                    <div class="child">
+                        <div class="child-name">Platforms & Workflows</div>
+                        <div class="child-copy">platforms, workflows</div>
+                    </div>
+                    <div class="child">
+                        <div class="child-name">Cloud / Deployment</div>
+                        <div class="child-copy">clouds, capacity, deployment</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group system" id="g1">
+                <div class="group-head">
+                    <div class="group-title">System</div>
+                    <div class="group-tag" style="background:#DBEAFE;color:#1D4ED8;">integration + movement</div>
+                </div>
+                <div class="group-copy">Turns hardware into usable capacity</div>
+                <div class="children three">
+                    <div class="child">
+                        <div class="child-name">Servers</div>
+                        <div class="child-copy">systems, racks</div>
+                    </div>
+                    <div class="child">
+                        <div class="child-name">Networking / Optical</div>
+                        <div class="child-copy">switches, optics, interconnect</div>
+                    </div>
+                    <div class="child">
+                        <div class="child-name">Ops / Utilization</div>
+                        <div class="child-copy">scheduling, utilization</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group physical" id="g2">
+                <div class="group-head">
+                    <div class="group-title">Physical Infrastructure</div>
+                    <div class="group-tag" style="background:#F3E8FF;color:#7E22CE;">core constraint</div>
+                </div>
+                <div class="group-copy">Supply concentration, industrial timelines</div>
+                <div class="children three">
+                    <div class="child">
+                        <div class="child-name">Compute / Memory / Packaging</div>
+                        <div class="child-copy">compute, memory, packaging</div>
+                    </div>
+                    <div class="child">
+                        <div class="child-name">Power / Cooling</div>
+                        <div class="child-copy">power, thermal, utilities</div>
+                    </div>
+                    <div class="child">
+                        <div class="child-name">Buildout</div>
+                        <div class="child-copy">land, permits, construction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="step-ctr"><span class="cur" id="stepNum">0</span> / 5</div>
+        <div class="hint" id="hint">CLICK or → to advance</div>
+    </div>
+</div>
+
+<script>
+function scale() {
+    const c = document.getElementById('canvas');
+    const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    c.style.transform = `scale(${s})`;
+}
+scale();
+window.addEventListener('resize', scale);
+
+const groupSteps = {
+    2: ['g0'],
+    3: ['g1'],
+    4: ['g2']
+};
+
+let step = 0;
+const MAX = 5;
+
+function advance() {
+    if (step >= MAX) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => el.classList.add('shown'));
+    (groupSteps[step] || []).forEach((id, idx) => {
+        setTimeout(() => {
+            document.getElementById(id).classList.add('shown');
+        }, idx * 70);
+    });
+    if (step >= MAX) document.getElementById('hint').textContent = 'Complete';
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowDown', ' ', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        advance();
+    }
+});
+</script>
+</body>
+</html>

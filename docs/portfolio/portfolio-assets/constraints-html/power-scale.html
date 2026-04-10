@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>80 GW Scale</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --muted: #999;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(2rem, 5vw, 4rem);
+            gap: clamp(2rem, 5vh, 3.5rem);
+        }
+
+        /* 80 GW anchor */
+        .anchor {
+            text-align: center;
+        }
+        .anchor-num {
+            font-family: var(--font-display); font-weight: 900;
+            line-height: 1;
+        }
+        .anchor-num .num { font-size: clamp(3rem, 9vw, 6rem); color: var(--accent); }
+        .anchor-num .unit { font-size: clamp(1.5rem, 4vw, 2.8rem); color: var(--dark); }
+        .anchor-sub {
+            font-family: var(--font-body);
+            font-size: clamp(0.75rem, 1.3vw, 1rem);
+            color: var(--muted); margin-top: 0.15em;
+        }
+        .eq-sign {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: var(--border);
+            text-align: center;
+        }
+
+        /* Two comparison cards */
+        .comparisons {
+            display: flex;
+            gap: clamp(1.5rem, 4vw, 3rem);
+            align-items: stretch;
+            max-width: 850px; width: 100%;
+        }
+
+        .comp-card {
+            flex: 1;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: clamp(1rem, 2.5vw, 1.8rem);
+            display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+            gap: clamp(0.5rem, 1.2vh, 0.8rem);
+        }
+
+        /* Japan grid visual — 4 blocks, 1 highlighted */
+        .japan-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(0.3rem, 0.7vw, 0.5rem);
+            width: clamp(5rem, 12vw, 8rem);
+        }
+        .japan-block {
+            aspect-ratio: 1;
+            background: #eee;
+            border-radius: 4px;
+            transition: background 0.6s ease;
+        }
+        .japan-block.lit {
+            background: var(--accent);
+        }
+        .japan-label-inside {
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 1vw, 0.75rem);
+            font-weight: 700;
+            color: #fff;
+        }
+        .japan-block:not(.lit) .japan-label-inside { color: var(--muted); }
+
+        .comp-title {
+            font-family: var(--font-display); font-weight: 800;
+            font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+        }
+        .comp-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1.1vw, 0.82rem);
+            color: var(--muted); line-height: 1.4;
+        }
+        .comp-stat {
+            font-family: var(--font-mono); font-weight: 700;
+            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+            color: var(--accent);
+        }
+
+        /* Household grid visual */
+        .house-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: clamp(0.15rem, 0.4vw, 0.25rem);
+            width: clamp(6rem, 14vw, 9rem);
+        }
+        .house-icon {
+            font-size: clamp(0.6rem, 1.1vw, 0.85rem);
+            text-align: center;
+            opacity: 0.25;
+            transition: opacity 0.05s ease;
+        }
+        .house-icon.lit { opacity: 1; }
+
+        /* Or divider */
+        .or-divider {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 0.3em;
+            align-self: center;
+        }
+        .or-line {
+            width: 1.5px; height: clamp(1.5rem, 4vh, 2.5rem);
+            background: var(--border);
+        }
+        .or-text {
+            font-family: var(--font-mono);
+            font-size: clamp(0.6rem, 1vw, 0.75rem);
+            color: var(--muted);
+        }
+
+        /* REVEAL */
+        .r {
+            opacity: 0; transform: translateY(12px);
+            transition: opacity 0.45s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        .r.shown { opacity: 1; transform: translateY(0); }
+
+        /* HINT */
+        .click-hint {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.85vw, 0.65rem); color: var(--muted);
+        }
+        .step-counter .cur { color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- 80 GW -->
+    <div class="anchor r" data-step="1">
+        <div class="anchor-num">
+            <span class="num">80</span> <span class="unit">GW</span>
+        </div>
+        <div class="anchor-sub">is equivalent to...</div>
+    </div>
+
+    <!-- Two comparisons -->
+    <div class="comparisons">
+
+        <!-- Japan -->
+        <div class="comp-card r" data-step="2">
+            <div class="japan-grid" id="japanGrid">
+                <div class="japan-block" id="jb1"><div class="japan-label-inside">¼</div></div>
+                <div class="japan-block"><div class="japan-label-inside"></div></div>
+                <div class="japan-block"><div class="japan-label-inside"></div></div>
+                <div class="japan-block"><div class="japan-label-inside"></div></div>
+            </div>
+            <div class="comp-title">¼ of Japan's 🇯🇵</div>
+            <div class="comp-desc">entire national power capacity</div>
+            <div class="comp-stat">~300 GW total</div>
+        </div>
+
+        <!-- Or -->
+        <div class="or-divider r" data-step="3">
+            <div class="or-line"></div>
+            <div class="or-text">OR</div>
+            <div class="or-line"></div>
+        </div>
+
+        <!-- Households -->
+        <div class="comp-card r" data-step="3">
+            <div class="house-grid" id="houseGrid">
+                <div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div>
+                <div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div>
+                <div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div><div class="house-icon">🏠</div>
+            </div>
+            <div class="comp-title">80 Million</div>
+            <div class="comp-desc">American households' electricity</div>
+            <div class="comp-stat">~60% of all US homes</div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="cur" id="stepNum">0</span> / 3</div>
+
+<script>
+let step = 0;
+
+function advance() {
+    if (step >= 3) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+    });
+
+    if (step === 2) {
+        // Light up the quarter block
+        setTimeout(() => {
+            document.getElementById('jb1').classList.add('lit');
+        }, 300);
+    }
+
+    if (step === 3) {
+        // Cascade light up houses
+        const houses = document.querySelectorAll('.house-icon');
+        houses.forEach((h, i) => {
+            setTimeout(() => { h.classList.add('lit'); }, i * 30);
+        });
+        document.getElementById('hint').textContent = 'Complete';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+
+</body>
+</html>

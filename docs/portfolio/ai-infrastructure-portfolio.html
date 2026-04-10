@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infrastructure Research Portfolio</title>
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --bg: #efe7db;
+    --panel: rgba(255, 252, 246, 0.88);
+    --panel-strong: rgba(255, 252, 246, 0.96);
+    --border: rgba(53, 39, 25, 0.12);
+    --text: #1f1a16;
+    --muted: #6f655d;
+    --accent: #c54e2f;
+    --accent-dark: #92351b;
+    --blue: #2363eb;
+    --shadow: 0 22px 70px rgba(70, 46, 24, 0.16);
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    color: var(--text);
+    font-family: "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(197, 78, 47, 0.14), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(35, 99, 235, 0.08), transparent 28%),
+      linear-gradient(145deg, #f5efe5 0%, #e8dece 100%);
+  }
+
+  body {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 24px 20px 20px;
+    background: var(--panel);
+    backdrop-filter: blur(18px);
+    border-right: 1px solid var(--border);
+    overflow: auto;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .hero h1 {
+    margin: 6px 0 10px;
+    font-size: 30px;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  .hero p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .meta-card {
+    padding: 14px 15px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .meta-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .meta-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .narrative {
+    padding: 14px 15px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .narrative-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .narrative-line {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+    padding: 8px 0;
+    border-top: 1px solid rgba(53, 39, 25, 0.08);
+  }
+
+  .narrative-line:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.55);
+    color: var(--text);
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 140ms ease;
+  }
+
+  .filter-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .filter-btn.active {
+    border-color: rgba(197, 78, 47, 0.35);
+    background: rgba(197, 78, 47, 0.12);
+    color: var(--accent-dark);
+  }
+
+  .page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .page-card {
+    width: 100%;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.55);
+    padding: 14px;
+    cursor: pointer;
+    transition: 140ms ease;
+  }
+
+  .page-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(59, 40, 21, 0.08);
+  }
+
+  .page-card.active {
+    border-color: rgba(197, 78, 47, 0.36);
+    background: linear-gradient(135deg, rgba(197,78,47,0.12), rgba(255,255,255,0.92));
+  }
+
+  .page-kicker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .page-index,
+  .page-section {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 800;
+  }
+
+  .page-index { color: var(--accent); }
+  .page-section { color: var(--muted); }
+
+  .page-title {
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .page-blurb {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .page-path {
+    font-size: 11px;
+    color: rgba(111, 101, 93, 0.88);
+    word-break: break-all;
+  }
+
+  .viewer {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--panel-strong);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .title-block {
+    min-width: 0;
+  }
+
+  .current-title {
+    font-size: 19px;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .current-meta {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+  }
+
+  .tool-btn,
+  .tool-link {
+    border: none;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 750;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: 140ms ease;
+  }
+
+  .tool-btn:hover,
+  .tool-link:hover {
+    transform: translateY(-1px);
+  }
+
+  .tool-btn.primary {
+    background: #231b17;
+    color: white;
+  }
+
+  .tool-btn.secondary,
+  .tool-link {
+    background: rgba(35, 27, 23, 0.08);
+    color: var(--text);
+  }
+
+  .tool-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .stage-shell {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stage-caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    border-radius: 28px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.74), rgba(249,244,235,0.82));
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border-radius: 22px;
+    border: 1px dashed rgba(53, 39, 25, 0.08);
+    pointer-events: none;
+  }
+
+  .stage-viewport {
+    position: absolute;
+    inset: 26px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fff;
+  }
+
+  .frame-shell {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: top left;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.10);
+    background: #fff;
+  }
+
+  .frame-shell iframe {
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+
+  @media (max-width: 1100px) {
+    body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: 42vh;
+    }
+
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+  }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <section class="hero">
+      <div class="eyebrow">Selected Work</div>
+      <h1>AI Infrastructure Research Portfolio</h1>
+      <p>Selected HTML research visuals spanning semiconductor systems, AI infrastructure constraints, and market maps. Built as public-facing content: analytical, data-driven, and presentation-ready.</p>
+    </section>
+
+    <section class="meta">
+      <div class="meta-card">
+        <div class="meta-label">Format</div>
+        <div class="meta-value">16:9</div>
+        <div class="meta-sub">Curated for interview demos</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-label">Pages</div>
+        <div class="meta-value" id="totalCount">0</div>
+        <div class="meta-sub">Horizontal slides only</div>
+      </div>
+    </section>
+
+    <section class="narrative">
+      <div class="narrative-title">Suggested Narrative</div>
+      <div class="narrative-line">Semiconductor systems: what an AI chip really requires, and where supply gets constrained.</div>
+      <div class="narrative-line">Infrastructure constraints: why power, cooling, and grid timelines matter as much as GPUs.</div>
+      <div class="narrative-line">Market visuals: landscape maps and revenue flows that show reporting and visualization range.</div>
+    </section>
+
+    <section>
+      <div class="eyebrow" style="margin-bottom: 10px;">Sections</div>
+      <div class="filter-group" id="filterGroup"></div>
+    </section>
+
+    <section class="page-list" id="pageList"></section>
+  </aside>
+
+  <main class="viewer">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="tool-btn primary" id="prevBtn" type="button">Previous</button>
+        <button class="tool-btn primary" id="nextBtn" type="button">Next</button>
+        <div class="title-block">
+          <div class="current-title" id="currentTitle"></div>
+          <div class="current-meta" id="currentMeta"></div>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button class="tool-btn secondary" id="firstBtn" type="button">First</button>
+        <button class="tool-btn secondary" id="lastBtn" type="button">Last</button>
+        <a class="tool-link" id="openBtn" target="_blank" rel="noopener noreferrer">Open current file</a>
+      </div>
+    </div>
+
+    <section class="stage-shell">
+      <div class="stage-caption">
+        <span id="stageNote">Scaled to fit a fixed 16:9 presentation stage without cropping.</span>
+        <span>Keyboard: ← →</span>
+      </div>
+      <div class="stage">
+        <div class="stage-viewport" id="stageViewport">
+          <div class="frame-shell" id="frameShell">
+            <iframe id="viewerFrame" title="Portfolio page"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "semiconductor", label: "Semiconductor Systems" },
+    { id: "constraints", label: "Infrastructure Constraints" },
+    { id: "market", label: "Market Visuals" }
+  ];
+
+  const pages = [
+    {
+      title: "AI Chip Supply",
+      section: "semiconductor",
+      sectionLabel: "Semiconductor Systems",
+      blurb: "Macro view of compute demand, semiconductor bottlenecks, and where AI chip supply gets tight.",
+      path: "infra系列/01ai-chip-linkedin-v7.html",
+      width: 1920,
+      height: 1080
+    },
+    {
+      title: "Building an AI Chip",
+      section: "semiconductor",
+      sectionLabel: "Semiconductor Systems",
+      blurb: "Breaks the system into GPU die, HBM, and advanced packaging to explain why one chip depends on multiple bottlenecks.",
+      path: "portfolio-assets/constraints-html/chip-assembly.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "Supply Bottleneck",
+      section: "semiconductor",
+      sectionLabel: "Semiconductor Systems",
+      blurb: "Shows that GPUs, HBM, and packaging are all simultaneous constraints rather than a single chokepoint.",
+      path: "portfolio-assets/constraints-html/supply-bottleneck.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "AI Infra Demand vs Supply",
+      section: "semiconductor",
+      sectionLabel: "Semiconductor Systems",
+      blurb: "High-level framing page on the gap between demand growth and infrastructure buildout.",
+      path: "infra系列/02ai-infra-demand-supply-v1.html",
+      width: 1920,
+      height: 1080
+    },
+    {
+      title: "Where the Money Goes",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Opening frame for capital allocation across chips, power, and data center buildout.",
+      path: "portfolio-assets/constraints-html/where-money-goes.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "Design Mismatch",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Explains why legacy data center power and cooling assumptions do not match LLM training workloads.",
+      path: "portfolio-assets/constraints-html/design-mismatch.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "Power Distribution",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Rack-level view of how AI shifts power density and forces electrical redesign.",
+      path: "portfolio-assets/constraints-html/power-distribution.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "Cooling Bottleneck",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Compares traditional bursty utilization with 24/7 AI load to show why thermal limits become structural.",
+      path: "portfolio-assets/constraints-html/cooling-bottleneck.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "Grid Connection Process",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Turns power availability into a timeline problem: permits, substations, transformers, and multi-year delays.",
+      path: "portfolio-assets/constraints-html/grid-connection.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "80 GW Scale",
+      section: "constraints",
+      sectionLabel: "Infrastructure Constraints",
+      blurb: "Scale anchor for how large AI power demand becomes in national and household terms.",
+      path: "portfolio-assets/constraints-html/power-scale.html",
+      width: 1600,
+      height: 900
+    },
+    {
+      title: "AI Infrastructure Stack Overview",
+      section: "market",
+      sectionLabel: "Market Visuals",
+      blurb: "Structured ecosystem map that translates a broad technical stack into a readable visual hierarchy.",
+      path: "ai-infrastructure-3-stack-overview.html",
+      width: 1920,
+      height: 1080
+    },
+    {
+      title: "AI Infrastructure Player Landscape",
+      section: "market",
+      sectionLabel: "Market Visuals",
+      blurb: "Competitive landscape view spanning the major infrastructure layers and company clusters.",
+      path: "ai-infrastructure-3-player-landscape.html",
+      width: 1920,
+      height: 1080
+    },
+    {
+      title: "Applied Materials Revenue Flow",
+      section: "market",
+      sectionLabel: "Market Visuals",
+      blurb: "Sankey-style revenue composition visual for a major semiconductor equipment company.",
+      path: "sankey chart/sankey chart html/amat-sankey.html",
+      width: 1200,
+      height: 675
+    },
+    {
+      title: "Lam Research Revenue Flow",
+      section: "market",
+      sectionLabel: "Market Visuals",
+      blurb: "Revenue flow analysis designed to make segment mix and concentration easier to read at a glance.",
+      path: "sankey chart/sankey chart html/lam-sankey.html",
+      width: 1200,
+      height: 675
+    },
+    {
+      title: "Tokyo Electron Revenue Flow",
+      section: "market",
+      sectionLabel: "Market Visuals",
+      blurb: "Parallel revenue-flow treatment for another semiconductor equipment player, useful for cross-company comparison.",
+      path: "sankey chart/sankey chart html/tel-sankey.html",
+      width: 1200,
+      height: 675
+    }
+  ];
+
+  const state = {
+    activeFilter: "all",
+    filteredPages: [],
+    currentPath: null
+  };
+
+  const filterGroup = document.getElementById("filterGroup");
+  const pageList = document.getElementById("pageList");
+  const totalCount = document.getElementById("totalCount");
+  const currentTitle = document.getElementById("currentTitle");
+  const currentMeta = document.getElementById("currentMeta");
+  const stageNote = document.getElementById("stageNote");
+  const viewerFrame = document.getElementById("viewerFrame");
+  const frameShell = document.getElementById("frameShell");
+  const stageViewport = document.getElementById("stageViewport");
+  const openBtn = document.getElementById("openBtn");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const firstBtn = document.getElementById("firstBtn");
+  const lastBtn = document.getElementById("lastBtn");
+
+  totalCount.textContent = String(pages.length);
+
+  function buildFilters() {
+    filters.forEach((filter) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "filter-btn";
+      button.textContent = filter.label;
+      button.addEventListener("click", () => {
+        state.activeFilter = filter.id;
+        syncFilteredPages();
+      });
+      filterGroup.appendChild(button);
+    });
+  }
+
+  function syncFilteredPages() {
+    state.filteredPages = state.activeFilter === "all"
+      ? pages
+      : pages.filter((page) => page.section === state.activeFilter);
+
+    if (!state.filteredPages.some((page) => page.path === state.currentPath)) {
+      state.currentPath = state.filteredPages[0]?.path ?? null;
+    }
+
+    renderFilters();
+    renderPageList();
+    renderCurrent();
+  }
+
+  function renderFilters() {
+    [...filterGroup.children].forEach((button, index) => {
+      button.classList.toggle("active", filters[index].id === state.activeFilter);
+    });
+  }
+
+  function renderPageList() {
+    pageList.innerHTML = "";
+    state.filteredPages.forEach((page, index) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "page-card";
+      if (page.path === state.currentPath) card.classList.add("active");
+      card.innerHTML = `
+        <div class="page-kicker">
+          <span class="page-index">${String(index + 1).padStart(2, "0")}</span>
+          <span class="page-section">${page.sectionLabel}</span>
+        </div>
+        <div class="page-title">${page.title}</div>
+        <div class="page-blurb">${page.blurb}</div>
+        <div class="page-path">${page.path}</div>
+      `;
+      card.addEventListener("click", () => {
+        state.currentPath = page.path;
+        renderPageList();
+        renderCurrent();
+      });
+      pageList.appendChild(card);
+    });
+  }
+
+  function getCurrentPage() {
+    return state.filteredPages.find((page) => page.path === state.currentPath) || state.filteredPages[0] || null;
+  }
+
+  function currentIndex() {
+    return state.filteredPages.findIndex((page) => page.path === state.currentPath);
+  }
+
+  function resizeStage() {
+    const page = getCurrentPage();
+    if (!page) return;
+
+    const viewportWidth = stageViewport.clientWidth;
+    const viewportHeight = stageViewport.clientHeight;
+    const scale = Math.min(viewportWidth / page.width, viewportHeight / page.height);
+    const left = (viewportWidth - page.width * scale) / 2;
+    const top = (viewportHeight - page.height * scale) / 2;
+
+    frameShell.style.width = `${page.width}px`;
+    frameShell.style.height = `${page.height}px`;
+    frameShell.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
+
+    viewerFrame.width = page.width;
+    viewerFrame.height = page.height;
+  }
+
+  function renderCurrent() {
+    const page = getCurrentPage();
+    if (!page) return;
+
+    const index = currentIndex();
+    currentTitle.textContent = `${page.title}`;
+    currentMeta.textContent = `${index + 1} of ${state.filteredPages.length} in ${filters.find((f) => f.id === state.activeFilter)?.label || "All"} · ${page.sectionLabel}`;
+    stageNote.textContent = `Scaled to fit a fixed 16:9 presentation stage without cropping. Source frame: ${page.width}×${page.height}.`;
+    viewerFrame.src = encodeURI(page.path);
+    openBtn.href = encodeURI(page.path);
+
+    prevBtn.disabled = index <= 0;
+    firstBtn.disabled = index <= 0;
+    nextBtn.disabled = index === -1 || index >= state.filteredPages.length - 1;
+    lastBtn.disabled = index === -1 || index >= state.filteredPages.length - 1;
+
+    renderPageList();
+    resizeStage();
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= state.filteredPages.length) return;
+    state.currentPath = state.filteredPages[index].path;
+    renderCurrent();
+  }
+
+  prevBtn.addEventListener("click", () => goTo(currentIndex() - 1));
+  nextBtn.addEventListener("click", () => goTo(currentIndex() + 1));
+  firstBtn.addEventListener("click", () => goTo(0));
+  lastBtn.addEventListener("click", () => goTo(state.filteredPages.length - 1));
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") goTo(currentIndex() - 1);
+    if (event.key === "ArrowRight") goTo(currentIndex() + 1);
+  });
+
+  window.addEventListener("resize", resizeStage);
+  new ResizeObserver(resizeStage).observe(stageViewport);
+
+  buildFilters();
+  state.currentPath = pages[0].path;
+  syncFilteredPages();
+</script>
+</body>
+</html>

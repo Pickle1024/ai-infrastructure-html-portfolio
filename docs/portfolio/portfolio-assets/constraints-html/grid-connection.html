@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Connection Process</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --secondary: #555;
+            --muted: #999;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --green: #22C55E;
+            --amber: #F59E0B;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex;
+            align-items: center; justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(2rem, 5vw, 4rem);
+        }
+
+        .layout {
+            display: flex;
+            gap: clamp(2.5rem, 6vw, 5rem);
+            align-items: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* ============================================
+           LEFT: Elapsed time counter
+           ============================================ */
+        .time-panel {
+            text-align: center;
+            flex-shrink: 0;
+            width: clamp(7rem, 14vw, 10rem);
+        }
+        .time-pre {
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3em;
+        }
+        .time-number {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            color: var(--dark);
+            line-height: 1;
+            transition: color 0.5s ease;
+        }
+        .time-number.danger { color: var(--accent); }
+        .time-unit {
+            font-family: var(--font-mono);
+            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+            color: var(--muted);
+            margin-top: 0.1em;
+        }
+
+        /* Elapsed bar */
+        .elapsed-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: clamp(0.6rem, 1.5vh, 1rem);
+            overflow: hidden;
+        }
+        .elapsed-fill {
+            height: 100%; width: 0;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width 1s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        /* ============================================
+           RIGHT: Vertical timeline steps
+           ============================================ */
+        .timeline {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+        }
+
+        /* Vertical line connecting steps */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: clamp(1.1rem, 2.2vw, 1.5rem);
+            top: clamp(1.5rem, 3vw, 2rem);
+            bottom: clamp(1.5rem, 3vw, 2rem);
+            width: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        /* Progress overlay on the line */
+        .timeline-progress {
+            position: absolute;
+            left: clamp(1.1rem, 2.2vw, 1.5rem);
+            top: clamp(1.5rem, 3vw, 2rem);
+            width: 2px;
+            height: 0;
+            background: var(--accent);
+            z-index: 1;
+            transition: height 0.8s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: clamp(0.8rem, 1.8vw, 1.2rem);
+            padding: clamp(0.5rem, 1.2vh, 0.8rem) 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Step dot */
+        .step-dot {
+            width: clamp(2.2rem, 4.5vw, 3rem);
+            height: clamp(2.2rem, 4.5vw, 3rem);
+            border-radius: 50%;
+            background: #fff;
+            border: 2.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            flex-shrink: 0;
+            transition: border-color 0.4s ease, background 0.4s ease;
+        }
+        .step.active .step-dot {
+            border-color: var(--accent);
+            background: #FEF2F2;
+        }
+        .step.done .step-dot {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+        .step.done .step-dot .dot-icon { filter: brightness(10); }
+
+        .step-content {
+            display: flex; flex-direction: column;
+            gap: clamp(0.1rem, 0.3vh, 0.2rem);
+            padding-top: clamp(0.15rem, 0.4vh, 0.25rem);
+        }
+        .step-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+        }
+        .step-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.65rem, 1.1vw, 0.82rem);
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        /* Tags */
+        .step-tags {
+            display: flex; gap: 0.4em; flex-wrap: wrap;
+            margin-top: 0.15em;
+        }
+        .tag {
+            font-family: var(--font-mono);
+            font-size: clamp(0.45rem, 0.75vw, 0.58rem);
+            font-weight: 600;
+            padding: 0.15em 0.5em;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        .tag.warn { background: #FEF3C7; color: #92400E; }
+        .tag.danger { background: #FEE2E2; color: var(--accent); }
+        .tag.info { background: #F0F0F0; color: var(--secondary); }
+
+        /* ============================================
+           REVEAL
+           ============================================ */
+        .r {
+            opacity: 0; transform: translateY(10px);
+            transition: opacity 0.45s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        .r.shown { opacity: 1; transform: translateY(0); }
+
+        /* HINT */
+        .click-hint {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.85vw, 0.65rem); color: var(--muted);
+        }
+        .step-counter .cur { color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="layout">
+
+        <!-- LEFT: Time counter -->
+        <div class="time-panel">
+            <div class="time-pre">Time elapsed</div>
+            <div class="time-number" id="timeNum">0</div>
+            <div class="time-unit" id="timeUnit">years</div>
+            <div class="elapsed-bar">
+                <div class="elapsed-fill" id="elapsedFill"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Timeline -->
+        <div class="timeline">
+            <div class="timeline-progress" id="timelineProgress"></div>
+
+            <!-- Step 1: Submit application -->
+            <div class="step r" data-step="1" id="step1">
+                <div class="step-dot"><span class="dot-icon">📋</span></div>
+                <div class="step-content">
+                    <div class="step-title">Submit Application</div>
+                    <div class="step-desc">File grid connection request to the operator</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Wait for approval -->
+            <div class="step r" data-step="2" id="step2">
+                <div class="step-dot"><span class="dot-icon">⏳</span></div>
+                <div class="step-content">
+                    <div class="step-title">Wait for Approval</div>
+                    <div class="step-desc">Legal process — cannot be skipped</div>
+                    <div class="step-tags r" data-step="3">
+                        <div class="tag info">Environmental</div>
+                        <div class="tag info">Safety</div>
+                        <div class="tag info">Capacity</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Grid expansion -->
+            <div class="step r" data-step="4" id="step3">
+                <div class="step-dot"><span class="dot-icon">⚡</span></div>
+                <div class="step-content">
+                    <div class="step-title">Grid Expansion</div>
+                    <div class="step-desc">Build substations, run high-voltage lines</div>
+                    <div class="step-tags r" data-step="5">
+                        <div class="tag warn">If local capacity isn't enough</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Equipment procurement -->
+            <div class="step r" data-step="6" id="step4">
+                <div class="step-dot"><span class="dot-icon">🏭</span></div>
+                <div class="step-content">
+                    <div class="step-title">Acquire Transformers</div>
+                    <div class="step-desc">Only a few companies globally can make them</div>
+                    <div class="step-tags r" data-step="7">
+                        <div class="tag danger">Multi-year waitlist</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="cur" id="stepNum">0</span> / 8</div>
+
+<script>
+let step = 0;
+const maxStep = 8;
+
+const timeData = [
+    { num: '0', unit: 'years', pct: 0, danger: false },    // init
+    { num: '0', unit: 'years', pct: 3, danger: false },     // step 1: submit
+    { num: '1', unit: 'year', pct: 15, danger: false },     // step 2: wait
+    { num: '1+', unit: 'years', pct: 22, danger: false },   // step 3: tags
+    { num: '2', unit: 'years', pct: 35, danger: false },    // step 4: expansion
+    { num: '3', unit: 'years', pct: 50, danger: true },     // step 5: expansion tag
+    { num: '4', unit: 'years', pct: 70, danger: true },     // step 6: transformers
+    { num: '5', unit: 'years', pct: 85, danger: true },     // step 7: waitlist tag
+    { num: '5–7', unit: 'years', pct: 100, danger: true },  // step 8: total
+];
+
+const stepStates = {
+    1: { activate: 'step1' },
+    2: { done: 'step1', activate: 'step2' },
+    3: { },
+    4: { done: 'step2', activate: 'step3' },
+    5: { },
+    6: { done: 'step3', activate: 'step4' },
+    7: { },
+    8: { done: 'step4' },
+};
+
+function advance() {
+    if (step >= maxStep) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    // Reveal elements
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+    });
+
+    // Update time counter
+    const td = timeData[step];
+    const timeNum = document.getElementById('timeNum');
+    const timeUnit = document.getElementById('timeUnit');
+    timeNum.textContent = td.num;
+    timeUnit.textContent = td.unit;
+    if (td.danger) timeNum.classList.add('danger');
+    else timeNum.classList.remove('danger');
+
+    // Elapsed bar
+    document.getElementById('elapsedFill').style.width = td.pct + '%';
+
+    // Timeline progress line
+    const progressPcts = [0, 8, 33, 33, 58, 58, 83, 83, 100];
+    document.getElementById('timelineProgress').style.height = progressPcts[step] + '%';
+
+    // Step dot states
+    const ss = stepStates[step];
+    if (ss) {
+        if (ss.activate) document.getElementById(ss.activate).classList.add('active');
+        if (ss.done) {
+            const el = document.getElementById(ss.done);
+            el.classList.remove('active');
+            el.classList.add('done');
+        }
+    }
+
+    if (step >= maxStep) {
+        document.getElementById('hint').textContent = 'Total: 5–7 years in the US';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+
+</body>
+</html>

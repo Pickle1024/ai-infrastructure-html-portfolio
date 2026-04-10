@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Applied Materials Revenue Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #FAFAFA;
+  width: 1200px; height: 675px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  font-family: 'Nunito', sans-serif;
+}
+.wrap {
+  padding-left: 48px;
+  padding-right: 48px;
+}
+.header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding-top: 26px; padding-bottom: 6px;
+}
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; color: #E63322;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+h1 {
+  font-family: 'Archivo', sans-serif;
+  font-size: 26px; font-weight: 900;
+  color: #0A0A0A; letter-spacing: -0.03em; line-height: 1.15;
+}
+h1 span { color: #2563EB; }
+.kpis {
+  display: flex; gap: 14px;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+.kpi {
+  text-align: center; background: white;
+  border: 1.5px solid #E0E0E0; border-radius: 8px;
+  padding: 7px 14px; min-width: 85px;
+}
+.kpi .k-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; color: #888;
+  text-transform: uppercase; margin-bottom: 2px;
+}
+.kpi .k-val { font-family: 'Archivo', sans-serif; font-size: 20px; font-weight: 900; color: #0A0A0A; }
+.kpi .k-val.g { color: #16A34A; }
+.kpi .k-val.b { color: #2563EB; }
+.divider { height: 1.5px; background: #E0E0E0; }
+.sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; color: #888; letter-spacing: 0.06em;
+  padding-top: 7px; padding-bottom: 7px;
+}
+.canvas-wrap {
+  flex: 1;
+  padding-left: 48px;
+  padding-right: 48px;
+  position: relative;
+}
+.canvas-wrap svg {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+}
+.nl {
+  position: absolute; pointer-events: none;
+  display: flex; flex-direction: column;
+  text-align: right; align-items: flex-end;
+}
+.nl .name {
+  font-family: 'Archivo', sans-serif;
+  font-size: 15px; font-weight: 800;
+  color: #0A0A0A; line-height: 1.1; white-space: nowrap;
+}
+.nl .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  margin-top: 2px; white-space: nowrap;
+}
+.footer {
+  position: relative;
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 8px; padding-bottom: 18px;
+}
+.legend { display: flex; gap: 16px; }
+.leg-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 600; color: #888;
+}
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink:0; }
+.brand {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  font-family: 'Archivo', sans-serif;
+  font-size: 22px; font-weight: 900;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.brand .pick { color: #0A0A0A; }
+.brand .lens { color: #E63322; }
+</style>
+</head>
+<body>
+
+<div class="wrap header">
+  <div>
+    <div class="eyebrow">Applied Materials · FY2025 Income Statement</div>
+    <h1>AMAT <span>$28.4B</span> — where it comes from,<br>and where it goes</h1>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="k-label">Revenue</div><div class="k-val b">$28.4B</div></div>
+    <div class="kpi"><div class="k-label">Gross Margin</div><div class="k-val g">48.7%</div></div>
+    <div class="kpi"><div class="k-label">Op. Margin</div><div class="k-val g">29.2%</div></div>
+    <div class="kpi"><div class="k-label">Net Income</div><div class="k-val ">$7.0B</div></div>
+  </div>
+</div>
+
+<div class="wrap divider"></div>
+<div class="wrap sub">Fiscal Year Ended Oct 26, 2025 · USD billions · Source: AMAT Q4 FY2025 Earnings Release (SEC 8-K)</div>
+<div class="wrap divider"></div>
+
+<div class="canvas-wrap" id="canvas"><svg id="svg"></svg></div>
+
+<div class="wrap footer">
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#2563EB"></div>Revenue sources</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#16A34A"></div>Profit flows</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#E63322"></div>Cost flows</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#7C3AED"></div>Operating income</div>
+  </div>
+  <div class="brand"><span class="pick">@Pick</span><span class="lens">Lens</span></div>
+  <div style="min-width:85px"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<script>
+const NC = {blue:'#2563EB', green:'#16A34A', red:'#E63322', purple:'#7C3AED'};
+const nodeColorMap = {
+  0: NC.blue,
+  1: NC.blue,
+  2: NC.blue,
+  3: NC.blue,
+  4: NC.blue,
+  5: NC.blue,
+  6: NC.red,
+  7: NC.green,
+  8: NC.red,
+  9: NC.red,
+  10: NC.purple,
+  11: NC.red,
+  12: NC.green
+};
+const nodeColor = id => nodeColorMap[id] || NC.blue;
+const rawNodes = [
+  {id:0, name:"Foundry & Logic", sub:"$13.9B"},
+  {id:1, name:"DRAM", sub:"$5.4B"},
+  {id:2, name:"Services / AGS", sub:"$6.4B"},
+  {id:3, name:"Flash Memory", sub:"$1.5B"},
+  {id:4, name:"Display & Other", sub:"$1.2B"},
+  {id:5, name:"Revenue", sub:"$28.4B"},
+  {id:6, name:"Cost of Revenue", sub:"$14.6B · 51.3%"},
+  {id:7, name:"Gross Profit", sub:"$13.8B · 48.7%"},
+  {id:8, name:"R&D", sub:"$3.6B · 12.6%"},
+  {id:9, name:"SG&A & Other", sub:"$1.9B · 6.7%"},
+  {id:10, name:"Operating Income", sub:"$8.3B · 29.2%"},
+  {id:11, name:"Tax & Other", sub:"$1.3B"},
+  {id:12, name:"Net Income", sub:"$7.0B · 24.7%"}
+];
+const rawLinks = [
+  {source:0, target:5, value:13935},
+  {source:1, target:5, value:5403},
+  {source:2, target:5, value:6385},
+  {source:3, target:5, value:1456},
+  {source:4, target:5, value:1185},
+  {source:5, target:7, value:13808},
+  {source:5, target:6, value:14560},
+  {source:7, target:10, value:8289},
+  {source:7, target:8, value:3570},
+  {source:7, target:9, value:1949},
+  {source:10, target:12, value:6998},
+  {source:10, target:11, value:1291}
+];
+const nodeOrder = {0:0, 1:1, 2:2, 3:3, 4:4, 5:0, 7:0, 6:10, 10:0, 8:5, 9:6, 12:0, 11:5};
+
+window.addEventListener('load', () => {
+  const canvasEl = document.getElementById('canvas');
+  const W = canvasEl.clientWidth;
+  const H = canvasEl.clientHeight;
+  document.getElementById('svg').setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const svg = d3.select('#svg');
+
+  const LABEL = 190;
+
+  const sankey = d3.sankey()
+    .nodeId(d => d.id)
+    .nodeSort((a, b) => nodeOrder[a.id] - nodeOrder[b.id])
+    .nodeWidth(22)
+    .nodePadding(12)
+    .extent([[LABEL, 8], [W - LABEL, H - 8]]);
+
+  const graph = sankey({
+    nodes: rawNodes.map(d => ({...d})),
+    links: rawLinks.map(d => ({...d}))
+  });
+
+  svg.append('g').selectAll('path')
+    .data(graph.links).join('path')
+    .attr('d', d3.sankeyLinkHorizontal())
+    .attr('fill', 'none')
+    .attr('stroke', d => nodeColor(d.target.id))
+    .attr('stroke-width', d => Math.max(2, d.width))
+    .attr('stroke-opacity', 0.20);
+
+  svg.append('g').selectAll('rect')
+    .data(graph.nodes).join('rect')
+    .attr('x', d => d.x0).attr('y', d => d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => Math.max(3, d.y1 - d.y0))
+    .attr('fill', d => nodeColor(d.id))
+    .attr('rx', 3);
+
+  graph.nodes.forEach(d => {
+    const midY = (d.y0 + d.y1) / 2;
+    const div  = document.createElement('div');
+    div.className = 'nl';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = d.name;
+    const valEl = document.createElement('div');
+    valEl.className = 'val';
+    valEl.style.color = nodeColor(d.id);
+    valEl.textContent = d.sub;
+    div.appendChild(nameEl);
+    div.appendChild(valEl);
+    div.style.top   = (midY - 18) + 'px';
+    div.style.right = (W - d.x0 + 12) + 'px';
+    canvasEl.appendChild(div);
+  });
+});
+</script>
+</body>
+</html>

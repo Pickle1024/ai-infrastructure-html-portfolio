@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Mismatch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --muted: #999;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --green: #22C55E;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex;
+            align-items: center; justify-content: center;
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(2rem, 5vw, 4rem);
+        }
+
+        .layout {
+            display: flex;
+            align-items: center;
+            gap: clamp(1.5rem, 4vw, 3rem);
+            max-width: 900px; width: 100%;
+        }
+
+        /* CARD */
+        .card {
+            flex: 1;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: clamp(1.2rem, 3vw, 2rem);
+            display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+            gap: clamp(0.6rem, 1.5vh, 1rem);
+            transition: border-color 0.4s ease;
+        }
+
+        .card-badge {
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+            font-weight: 700;
+            padding: 0.2em 0.7em;
+            border-radius: 99px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .badge-old { background: #f0f0f0; color: var(--muted); }
+        .badge-new { background: #FEE2E2; color: var(--accent); }
+
+        .card-title {
+            font-family: var(--font-display); font-weight: 800;
+            font-size: clamp(1rem, 1.8vw, 1.3rem);
+        }
+
+        /* Icon grid for workloads */
+        .workload-icons {
+            display: flex; gap: clamp(0.4rem, 1vw, 0.7rem);
+            flex-wrap: wrap; justify-content: center;
+        }
+        .wl-chip {
+            display: flex; align-items: center; gap: 0.3em;
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 0.95vw, 0.72rem);
+            padding: 0.25em 0.6em;
+            border-radius: 5px;
+            background: #f8f8f8;
+            border: 1px solid #eee;
+            color: var(--secondary);
+        }
+        .wl-chip.red {
+            background: #FEF2F2;
+            border-color: #FECACA;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Server rack visual */
+        .rack-visual {
+            display: flex; gap: clamp(0.3rem, 0.7vw, 0.5rem);
+            justify-content: center;
+        }
+        .mini-rack {
+            width: clamp(1.2rem, 2.5vw, 1.8rem);
+            height: clamp(2.5rem, 6vh, 4rem);
+            background: #222;
+            border-radius: 3px;
+            display: flex; flex-direction: column;
+            padding: 3px; gap: 2px;
+        }
+        .mini-unit {
+            flex: 1; width: 100%;
+            border-radius: 1px;
+            display: flex; align-items: center;
+            padding-left: 2px;
+        }
+        .mini-unit .dot {
+            width: 3px; height: 3px; border-radius: 50%;
+        }
+        .mini-unit.green { background: #2a3a2a; }
+        .mini-unit.green .dot { background: var(--green); box-shadow: 0 0 3px var(--green); }
+        .mini-unit.red { background: #3a2a2a; }
+        .mini-unit.red .dot { background: var(--accent); box-shadow: 0 0 3px var(--accent); }
+        .mini-unit.idle { background: #333; }
+        .mini-unit.idle .dot { background: #555; }
+
+        /* Status line */
+        .card-status {
+            font-family: var(--font-mono);
+            font-size: clamp(0.6rem, 1vw, 0.78rem);
+            font-weight: 700;
+            display: flex; align-items: center; gap: 0.4em;
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+        }
+        .status-ok .status-dot { background: var(--green); }
+        .status-ok { color: var(--green); }
+        .status-fail .status-dot { background: var(--accent); }
+        .status-fail { color: var(--accent); }
+
+        /* Arrow between */
+        .arrow-col {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 0.3em;
+            flex-shrink: 0;
+        }
+        .arrow-icon {
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            color: var(--muted);
+        }
+        .arrow-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.5rem, 0.85vw, 0.65rem);
+            color: var(--accent);
+            font-weight: 700;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 0.05em;
+        }
+
+        /* Cross overlay */
+        .cross {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: clamp(3rem, 7vw, 5rem);
+            color: var(--accent);
+            opacity: 0.15;
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+        }
+        .cross.shown { transform: translate(-50%, -50%) scale(1); }
+
+        .card { position: relative; }
+
+        /* REVEAL */
+        .r {
+            opacity: 0; transform: translateY(12px);
+            transition: opacity 0.45s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        .r.shown { opacity: 1; transform: translateY(0); }
+
+        /* HINT */
+        .click-hint {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(0.8rem, 1.5vh, 1.2rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.85vw, 0.65rem); color: var(--muted);
+        }
+        .step-counter .cur { color: var(--accent); font-weight: 700; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="layout">
+
+        <!-- LEFT: Designed for -->
+        <div class="card r" data-step="1" id="cardOld">
+            <div class="card-badge badge-old">Designed for</div>
+            <div class="rack-visual">
+                <div class="mini-rack">
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                </div>
+                <div class="mini-rack">
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                </div>
+                <div class="mini-rack">
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                    <div class="mini-unit green"><div class="dot"></div></div>
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                    <div class="mini-unit idle"><div class="dot"></div></div>
+                </div>
+            </div>
+            <div class="card-title">Traditional Workloads</div>
+            <div class="workload-icons r" data-step="2">
+                <div class="wl-chip">☁️ Cloud</div>
+                <div class="wl-chip">📊 Ads</div>
+                <div class="wl-chip">🎯 RecSys</div>
+            </div>
+            <div class="card-status status-ok r" data-step="2">
+                <div class="status-dot"></div>Power & cooling sufficient
+            </div>
+        </div>
+
+        <!-- ARROW -->
+        <div class="arrow-col r" data-step="3">
+            <div class="arrow-icon">≠</div>
+            <div class="arrow-label">MISMATCH</div>
+        </div>
+
+        <!-- RIGHT: Now needed for -->
+        <div class="card r" data-step="3" id="cardNew">
+            <div class="card-badge badge-new">Now needed for</div>
+            <div class="rack-visual">
+                <div class="mini-rack">
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                </div>
+                <div class="mini-rack">
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                </div>
+                <div class="mini-rack">
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                    <div class="mini-unit red"><div class="dot"></div></div>
+                </div>
+            </div>
+            <div class="card-title">LLM Training</div>
+            <div class="workload-icons r" data-step="4">
+                <div class="wl-chip red">🧠 GPT</div>
+                <div class="wl-chip red">🧠 Claude</div>
+                <div class="wl-chip red">🧠 Gemini</div>
+            </div>
+            <div class="card-status status-fail r" data-step="4">
+                <div class="status-dot"></div>Power & cooling can't support
+            </div>
+            <div class="cross" id="cross">✕</div>
+        </div>
+
+    </div>
+</div>
+
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="cur" id="stepNum">0</span> / 4</div>
+
+<script>
+let step = 0;
+
+function advance() {
+    if (step >= 4) return;
+    step++;
+    document.getElementById('stepNum').textContent = step;
+
+    document.querySelectorAll(`.r[data-step="${step}"]`).forEach(el => {
+        el.classList.add('shown');
+    });
+
+    if (step === 3) {
+        document.getElementById('cardNew').style.borderColor = 'var(--accent)';
+    }
+
+    if (step === 4) {
+        document.getElementById('cross').classList.add('shown');
+        document.getElementById('hint').textContent = 'Complete';
+    }
+}
+
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+
+</body>
+</html>

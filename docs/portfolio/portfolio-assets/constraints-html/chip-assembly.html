@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building an AI Chip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFAFA;
+            --dark: #0A0A0A;
+            --secondary: #555;
+            --muted: #888;
+            --accent: #E63322;
+            --border: #E0E0E0;
+            --green: #22C55E;
+            --purple: #8B5CF6;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%; overflow: hidden;
+            background: var(--bg); font-family: var(--font-body);
+            color: var(--dark); cursor: pointer; user-select: none;
+        }
+        .page {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: clamp(1.5rem, 3vh, 2.5rem);
+        }
+
+        /* HEADER */
+        .header { text-align: center; }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+            color: var(--accent); text-transform: uppercase;
+            letter-spacing: 0.15em; margin-bottom: 0.4em;
+            display: flex; align-items: center; justify-content: center; gap: 0.6em;
+        }
+        .section-label::before {
+            content: ''; width: clamp(1.5rem, 3vw, 2.5rem); height: 2px; background: var(--accent);
+        }
+        h1 {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.8rem, 5vw, 3rem); letter-spacing: -0.02em;
+        }
+        .subtitle {
+            font-family: var(--font-body);
+            font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+            color: var(--muted); margin-top: 0.3em;
+            transition: color 0.3s ease;
+        }
+
+        /* MAIN ROW — diagram + labels side by side */
+        .main-row {
+            display: flex; align-items: center;
+            gap: clamp(2rem, 5vw, 4rem);
+        }
+
+        /* ASSEMBLY DIAGRAM */
+        .assembly {
+            position: relative;
+            width: clamp(320px, 45vw, 520px);
+            height: clamp(240px, 38vh, 360px);
+        }
+
+        /* Packaging substrate (Step 3) */
+        .packaging {
+            position: absolute; inset: 0;
+            border: 2.5px solid transparent; border-radius: 10px;
+            background: #f0eeeb;
+            opacity: 0; transform: scale(0.94);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .packaging.shown { opacity: 1; transform: scale(1); border-color: var(--border); }
+        .packaging.complete {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #f5f3f0 0%, #ede9e4 100%);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        }
+        .packaging::before {
+            content: ''; position: absolute; inset: 6px;
+            border: 1px dashed #ddd; border-radius: 7px;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.4s ease 0.3s;
+        }
+        .packaging.shown::before { opacity: 1; }
+        .pkg-label {
+            position: absolute;
+            bottom: clamp(0.3rem, 1vh, 0.6rem);
+            right: clamp(0.5rem, 1vw, 0.8rem);
+            font-family: var(--font-mono);
+            font-size: clamp(0.55rem, 1vw, 0.75rem);
+            color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .interposer {
+            position: absolute; bottom: 12%; left: 7%; right: 7%; height: 6%;
+            background: repeating-linear-gradient(90deg, #c9c4bc 0px, #c9c4bc 2px, #ddd8d2 2px, #ddd8d2 5px);
+            border-radius: 2px; opacity: 0;
+            transition: opacity 0.4s ease 0.4s;
+        }
+        .packaging.shown .interposer { opacity: 1; }
+        .interposer-label {
+            position: absolute; bottom: -1.5em; left: 50%; transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: clamp(0.45rem, 0.8vw, 0.6rem);
+            color: var(--muted); white-space: nowrap;
+        }
+
+        /* CHIP LAYOUT — flex row: HBM HBM [GPU] HBM HBM */
+        .chip-layout {
+            position: absolute;
+            top: 8%; bottom: 24%; left: 7%; right: 7%;
+            display: flex; align-items: stretch;
+            gap: clamp(0.25rem, 0.6vw, 0.4rem);
+        }
+
+        /* GPU die — center */
+        .gpu-die {
+            flex: 3;
+            background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 5px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: clamp(0.25rem, 0.7vh, 0.4rem);
+            box-shadow: 0 3px 16px rgba(0,0,0,0.15);
+            opacity: 0; transform: translateY(-20px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .gpu-die.shown { opacity: 1; transform: translateY(0); }
+        .gpu-die .die-title {
+            font-family: var(--font-mono);
+            font-size: clamp(0.85rem, 1.6vw, 1.2rem);
+            font-weight: 700; color: var(--green); letter-spacing: 0.1em;
+        }
+        .gpu-die .die-subtitle {
+            font-family: var(--font-mono);
+            font-size: clamp(0.5rem, 0.9vw, 0.7rem);
+            color: rgba(255,255,255,0.4);
+        }
+        .core-grid {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            gap: 2px; width: 75%;
+        }
+        .core {
+            aspect-ratio: 1; background: var(--green);
+            border-radius: 1px; opacity: 0.6;
+        }
+        .core:nth-child(odd) { opacity: 0.8; }
+
+        /* HBM columns — flanking the GPU */
+        .hbm-col {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: clamp(0.1rem, 0.3vh, 0.2rem);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hbm-col.shown { opacity: 1; }
+        .hbm-col.from-left { transform: translateX(-20px); }
+        .hbm-col.from-right { transform: translateX(20px); }
+        .hbm-col.shown.from-left,
+        .hbm-col.shown.from-right { transform: translateX(0); }
+        .hbm-col:nth-child(1).shown { transition-delay: 0s; }
+        .hbm-col:nth-child(2).shown { transition-delay: 0.1s; }
+        .hbm-col:nth-child(4).shown { transition-delay: 0.1s; }
+        .hbm-col:nth-child(5).shown { transition-delay: 0s; }
+
+        .hbm-block {
+            width: 85%;
+            display: flex; flex-direction: column;
+            gap: 1.5px; justify-content: center;
+        }
+        .hbm-layer {
+            width: 100%;
+            height: clamp(0.22rem, 0.5vh, 0.35rem);
+            background: var(--accent); border-radius: 1px;
+        }
+        .hbm-layer:nth-child(even) { opacity: 0.8; }
+        .hbm-label {
+            font-family: var(--font-mono);
+            font-size: clamp(0.48rem, 0.85vw, 0.62rem);
+            color: var(--accent); font-weight: 700; white-space: nowrap;
+            margin-top: 0.2em;
+        }
+
+        /* Connection lines (complete) */
+        .conn-lines {
+            position: absolute; inset: 0;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.5s ease 0.3s;
+        }
+        .conn-lines.shown { opacity: 1; }
+        .conn-lines svg { width: 100%; height: 100%; }
+        .conn-line {
+            stroke: var(--purple); stroke-width: 1.5;
+            stroke-dasharray: 4 3; fill: none; opacity: 0.5;
+        }
+
+        /* Complete badge */
+        .complete-badge {
+            position: absolute;
+            top: clamp(-1.3rem, -2.5vh, -1.6rem); left: 50%;
+            transform: translateX(-50%) scale(0);
+            font-family: var(--font-mono);
+            font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+            font-weight: 700; color: #fff; background: var(--accent);
+            padding: 0.3em 1.2em; border-radius: 99px;
+            white-space: nowrap; letter-spacing: 0.08em;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+        }
+        .complete-badge.shown { transform: translateX(-50%) scale(1); }
+
+        /* STEP LABELS */
+        .step-labels {
+            display: flex; flex-direction: column;
+            gap: clamp(1.2rem, 3vh, 2rem);
+            width: clamp(10rem, 18vw, 15rem);
+        }
+        .step-label {
+            opacity: 0; transform: translateX(15px);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; align-items: flex-start; gap: 0.6em;
+        }
+        .step-label.shown { opacity: 1; transform: translateX(0); }
+        .step-num {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+            color: var(--accent); line-height: 1; min-width: 1.2em;
+        }
+        .step-info { display: flex; flex-direction: column; }
+        .step-title {
+            font-family: var(--font-display); font-weight: 800;
+            font-size: clamp(0.9rem, 1.5vw, 1.15rem); line-height: 1.2;
+        }
+        .step-desc {
+            font-family: var(--font-body);
+            font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+            color: var(--muted); margin-top: 0.2em; line-height: 1.4;
+        }
+
+        /* HINT & COUNTER */
+        .click-hint {
+            position: fixed; bottom: clamp(1rem, 2vh, 1.5rem); right: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.55rem, 0.8vw, 0.65rem);
+            color: var(--muted); opacity: 0.5;
+        }
+        .step-counter {
+            position: fixed; bottom: clamp(1rem, 2vh, 1.5rem); left: clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono); font-size: clamp(0.6rem, 0.9vw, 0.7rem); color: var(--muted);
+        }
+        .step-counter .current { color: var(--accent); font-weight: 700; }
+
+        @media (max-width: 800px) {
+            .main-row { flex-direction: column; }
+            .step-labels { flex-direction: row; flex-wrap: wrap; width: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="header">
+        <div class="section-label"><span>Building an AI Chip</span></div>
+        <h1>Three Components Required</h1>
+        <div class="subtitle" id="subtitle">Click to assemble</div>
+    </div>
+    <div class="main-row">
+        <div class="assembly">
+            <div class="packaging" id="packaging">
+                <div class="pkg-label">CoWoS Advanced Packaging</div>
+                <div class="interposer"><div class="interposer-label">Silicon Interposer</div></div>
+            </div>
+            <div class="chip-layout">
+                <div class="hbm-col from-left" id="hbm1">
+                    <div class="hbm-block"><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div></div>
+                    <div class="hbm-label">HBM</div>
+                </div>
+                <div class="hbm-col from-left" id="hbm2">
+                    <div class="hbm-block"><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div></div>
+                    <div class="hbm-label">HBM</div>
+                </div>
+                <div class="gpu-die" id="gpu">
+                    <div class="die-title">GPU DIE</div>
+                    <div class="die-subtitle">Billions of transistors</div>
+                    <div class="core-grid">
+                        <div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div>
+                        <div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div>
+                        <div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div>
+                        <div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div><div class="core"></div>
+                    </div>
+                </div>
+                <div class="hbm-col from-right" id="hbm3">
+                    <div class="hbm-block"><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div></div>
+                    <div class="hbm-label">HBM</div>
+                </div>
+                <div class="hbm-col from-right" id="hbm4">
+                    <div class="hbm-block"><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div><div class="hbm-layer"></div></div>
+                    <div class="hbm-label">HBM</div>
+                </div>
+            </div>
+            <div class="conn-lines" id="connLines">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <line class="conn-line" x1="22" y1="35" x2="29" y2="35"/>
+                    <line class="conn-line" x1="22" y1="48" x2="29" y2="48"/>
+                    <line class="conn-line" x1="71" y1="35" x2="78" y2="35"/>
+                    <line class="conn-line" x1="71" y1="48" x2="78" y2="48"/>
+                </svg>
+            </div>
+            <div class="complete-badge" id="completeBadge">✓ COMPLETE AI CHIP</div>
+        </div>
+        <div class="step-labels">
+            <div class="step-label" id="stepLabel1">
+                <div class="step-num">1</div>
+                <div class="step-info">
+                    <div class="step-title">GPU Die</div>
+                    <div class="step-desc">The compute engine — processes AI model calculations at massive scale.</div>
+                </div>
+            </div>
+            <div class="step-label" id="stepLabel2">
+                <div class="step-num">2</div>
+                <div class="step-info">
+                    <div class="step-title">HBM Memory</div>
+                    <div class="step-desc">High Bandwidth Memory — vertically stacked DRAM layers that feed data to the GPU.</div>
+                </div>
+            </div>
+            <div class="step-label" id="stepLabel3">
+                <div class="step-num">3</div>
+                <div class="step-info">
+                    <div class="step-title">Advanced Packaging</div>
+                    <div class="step-desc">Silicon interposer that binds GPU and HBM together into one chip package.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="click-hint" id="hint">CLICK or → to advance</div>
+<div class="step-counter"><span class="current" id="stepNum">0</span> / 3</div>
+<script>
+let step = 0;
+function advance() {
+    step++;
+    if (step > 3) return;
+    document.getElementById('stepNum').textContent = step;
+    if (step === 1) {
+        document.getElementById('gpu').classList.add('shown');
+        document.getElementById('stepLabel1').classList.add('shown');
+        document.getElementById('subtitle').textContent = 'Step 1: GPU Die';
+    }
+    if (step === 2) {
+        document.querySelectorAll('.hbm-col').forEach(h => h.classList.add('shown'));
+        document.getElementById('stepLabel2').classList.add('shown');
+        document.getElementById('subtitle').textContent = 'Step 2: HBM Memory';
+    }
+    if (step === 3) {
+        document.getElementById('packaging').classList.add('shown');
+        document.getElementById('stepLabel3').classList.add('shown');
+        document.getElementById('subtitle').textContent = 'Step 3: Advanced Packaging';
+        setTimeout(() => {
+            document.getElementById('packaging').classList.add('complete');
+            document.getElementById('connLines').classList.add('shown');
+            document.getElementById('completeBadge').classList.add('shown');
+            document.getElementById('subtitle').textContent = 'Complete AI Chip';
+            document.getElementById('subtitle').style.color = 'var(--accent)';
+            document.getElementById('subtitle').style.fontWeight = '700';
+            document.getElementById('hint').textContent = 'Assembly complete';
+        }, 800);
+    }
+}
+document.addEventListener('click', advance);
+document.addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)) { e.preventDefault(); advance(); }
+});
+</script>
+</body>
+</html>
